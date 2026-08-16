@@ -1,0 +1,57 @@
+/* Prevent large intrinsic product images from expanding the grid column. */
+.detail-grid {
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: start;
+}
+
+.detail-grid > *,
+.gallery,
+.gallery-main,
+.detail-copy {
+  min-width: 0;
+}
+
+.gallery {
+  grid-template-columns: 74px minmax(0, 1fr);
+  width: 100%;
+  overflow: hidden;
+}
+
+.gallery-main {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.gallery-main > img {
+  display: block;
+  width: 80%;
+  height: 80%;
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  object-fit: contain;
+}
+
+.detail-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.detail-copy h1,
+.detail-copy p {
+  overflow-wrap: anywhere;
+}
+
+
+@media (max-width: 900px) {
+  .detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .gallery {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,138 @@
+.cart-page-section {
+  min-height: 70vh;
+}
+
+.cart-heading-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+/* Items details */
+.cart-item-img-container {
+  width: 90px;
+  height: 90px;
+}
+
+.cart-item-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.cart-item-title {
+  font-size: 15px;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+.cart-item-category {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+.cart-item-qty {
+  background: #f9f9f9;
+}
+
+.cart-item-qty button:hover {
+  background: #eaeaea;
+  border-radius: 50%;
+}
+
+.cart-item-price {
+  font-size: 15px;
+}
+
+/* Checkout summary panel */
+.checkout-summary-panel {
+  position: sticky;
+  top: 100px;
+}
+
+.summary-title {
+  font-size: 18px;
+  color: #1a1a1a;
+  border-bottom: 2px solid #eaeaea;
+  padding-bottom: 12px;
+}
+
+.checkout-btn {
+  background-color: #FDB101;
+  border-color: #FDB101;
+  color: #0c0c0c;
+  transition: all 0.3s ease;
+}
+
+.checkout-btn:hover {
+  background-color: #e39e00;
+  border-color: #e39e00;
+  color: #000;
+  transform: translateY(-2px);
+}
+
+/* Empty state design */
+.cart-empty-state {
+  margin: 40px auto;
+  max-width: 600px;
+  padding: 60px 40px !important;
+}
+
+.cart-empty-icon svg {
+  animation: bounceEmptyCart 3s infinite ease-in-out;
+}
+
+.cart-continue-shopping-btn {
+  background-color: #FDB101;
+  border-color: #FDB101;
+  color: #0c0c0c;
+  transition: all 0.3s ease;
+  font-size: 14.5px;
+  letter-spacing: 0.3px;
+}
+
+.cart-continue-shopping-btn:hover {
+  background-color: #e39e00;
+  border-color: #e39e00;
+  color: #000;
+  transform: translateY(-2px);
+}
+
+@keyframes bounceEmptyCart {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Responsive Cart Items Stacking on Mobile/Tablet */
+@media (max-width: 768px) {
+  .cart-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px;
+    padding: 20px 0;
+  }
+  .cart-item > div:nth-child(1) {
+    width: 100%;
+  }
+  .cart-item > div:nth-child(2) {
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: space-between !important;
+    gap: 15px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-item > div:nth-child(2) {
+    flex-wrap: wrap;
+    gap: 12px !important;
+  }
+  .cart-item-price-calc {
+    text-align: left !important;
+  }
+}

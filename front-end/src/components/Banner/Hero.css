@@ -1,0 +1,311 @@
+.hero {
+    background: #fff;
+    padding: 20px 20px;
+}
+
+.hero-container {
+    max-width: 1400px;
+    margin: auto;
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+}
+
+.hero-slide-wrapper {
+    display: flex;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    width: 100%;
+}
+
+.hero-slide {
+    flex: 0 0 100%;
+    position: relative;
+    width: 100%;
+    background-color: #f5f5f7; /* Default light base */
+    overflow: hidden;
+    transition: background-color 0.4s ease; /* Smooth background transitions */
+}
+
+/* Reduced height layout container */
+.hero-slide-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 21 / 8; /* Shorter desktop height ratio (approx 530px at 1400px width) */
+    box-sizing: border-box;
+}
+
+/* Left content container */
+.hero-content-left {
+    position: absolute;
+    left: 70px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 440px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+/* Right media container */
+.hero-media-right {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 60%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 20px 40px 20px 0; /* Constraints to prevent edge overlap/touching */
+    box-sizing: border-box;
+    z-index: 2;
+}
+
+/* Product Image styling */
+.hero-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Shows complete products, no cropping */
+    object-position: right center; /* Pushes products slightly toward right */
+    display: block;
+    border-radius: 16px;
+}
+
+/* Product Video styling */
+.hero-video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Shows complete products, no cropping */
+    object-position: right center; /* Pushes video slightly toward right */
+    display: block;
+    border-radius: 16px;
+}
+
+/* Typography & Visual Details driven by slide CSS variables */
+.hero-tag {
+    display: inline-block;
+    background: #FDB101;
+    color: #000;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 11px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(253, 177, 1, 0.15);
+}
+
+.hero-content-left h1 {
+    font-size: 44px;
+    font-weight: 900;
+    line-height: 52px;
+    color: var(--slide-text-color, #000);
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.hero-content-left h1 span {
+    color: var(--slide-span-color, #FDB101);
+}
+
+.hero-content-left p {
+    margin: 12px 0 24px;
+    color: var(--slide-desc-color, #555);
+    font-size: 14.5px;
+    line-height: 22px;
+    max-width: 90%;
+}
+
+.shop-btn {
+    display: inline-block;
+    background-color: var(--slide-btn-bg, #000);
+    color: var(--slide-btn-color, #fff);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14.5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+}
+
+.shop-btn:hover {
+    filter: brightness(0.9);
+    transform: scale(1.02);
+}
+
+/* Navigation Buttons */
+.slider-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.75);
+    color: #000;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.slider-nav-btn:hover {
+    background: #ffffff;
+    transform: translateY(-50%) scale(1.1);
+    color: #FDB101;
+}
+
+.slider-nav-btn.prev {
+    left: 24px;
+}
+
+.slider-nav-btn.next {
+    right: 24px;
+}
+
+/* Indicator Dots */
+.slider-dots {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.slider-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+}
+
+.slider-dot:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.slider-dot.active {
+    background: #FDB101;
+    width: 24px;
+    border-radius: 5px;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+    .hero-slide-container {
+        aspect-ratio: 21 / 9; /* Shorter landscape view on medium screens */
+    }
+
+    .hero-content-left {
+        left: 50px;
+        width: 360px;
+    }
+
+    .hero-media-right {
+        width: 58%;
+    }
+
+    .hero-content-left h1 {
+        font-size: 34px;
+        line-height: 42px;
+    }
+
+    .hero-content-left p {
+        font-size: 13.5px;
+        line-height: 20px;
+        margin: 10px 0 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        padding: 10px;
+    }
+
+    .hero-slide-container {
+        flex-direction: column; /* Stacked layout on mobile */
+        aspect-ratio: auto;
+        height: auto;
+        padding: 30px 0 40px;
+    }
+
+    .hero-content-left {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        width: 100%;
+        max-width: 100%;
+        padding: 0 20px 24px;
+        text-align: center;
+        align-items: center;
+    }
+
+    .hero-media-right {
+        position: relative;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 10; /* Clean landscape ratio for product media on mobile */
+        justify-content: center;
+        padding: 10px 20px;
+    }
+
+    .hero-image,
+    .hero-video {
+        object-position: center; /* Center products on mobile stack */
+    }
+
+    .hero-content-left h1 {
+        font-size: 30px;
+        line-height: 36px;
+        color: var(--slide-text-color, #000);
+    }
+
+    .hero-content-left p {
+        font-size: 14px;
+        line-height: 20px;
+        margin: 10px 0 18px;
+        color: var(--slide-desc-color, #555);
+    }
+
+    .shop-btn {
+        width: 100%;
+        max-width: 280px; /* Highly tappable but neat mobile CTA */
+        padding: 12px 24px;
+        font-size: 14px;
+        background-color: var(--slide-btn-bg, #000);
+        color: var(--slide-btn-color, #fff);
+    }
+
+    .slider-nav-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .slider-nav-btn.prev {
+        left: 10px;
+    }
+
+    .slider-nav-btn.next {
+        right: 10px;
+    }
+
+    .slider-dots {
+        bottom: 12px;
+    }
+}

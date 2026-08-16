@@ -1,0 +1,158 @@
+/* Search Bar & Auto-Suggestions Styles */
+.search-wrapper {
+  position: relative;
+  z-index: 999; /* Ensure suggestions float above all header menus and banners */
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  width: 450px;
+  height: 44px;
+  border: 1.5px solid #D6C4AC;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #ffffff;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.search-container:focus-within {
+  border-color: #FDB101;
+  box-shadow: 0 4px 15px rgba(253, 177, 1, 0.12);
+}
+.search-clear{border:0;background:#fff;color:#777;font-size:21px;padding:0 10px}
+
+#search-bar {
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  padding: 0 20px;
+  font-size: 14.5px;
+  font-weight: 400;
+  color: #1a1a1a;
+}
+
+#search-bar::placeholder {
+  color: #9ca3af;
+}
+
+#search-icon {
+  width: 64px;
+  height: 100%;
+  border: none;
+  background: #FDB101;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+#search-icon:hover {
+  background-color: #e39e00;
+}
+
+#search-icon:active {
+  transform: scale(0.98);
+}
+
+#search-icon img {
+  width: 18px;
+  height: 18px;
+}
+
+/* Floating Suggestions Dropdown Box */
+.search-suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  margin-top: 8px;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-height: 380px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+
+/* Custom Scrollbar for Dropdown */
+.search-suggestions-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-suggestions-dropdown::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+.search-suggestions-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Individual Suggestion Item */
+.suggestion-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background-color: #f8f9fa;
+}
+
+.suggestion-image {
+  width: 38px;
+  height: 38px;
+  object-fit: cover;
+  border-radius: 6px;
+  background-color: #f1f1f1;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.suggestion-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.suggestion-category {
+  font-size: 10px;
+  color: #8c8c8c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.suggestion-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111111;
+  letter-spacing: -0.2px;
+}
+
+.no-suggestions {
+  font-size: 13px;
+  color: #8c8c8c;
+}
+
+/* Responsive Search Bar */
+@media (max-width: 991px) {
+  .search-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .search-container {
+    width: 100%;
+  }
+}

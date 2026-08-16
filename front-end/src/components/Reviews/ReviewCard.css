@@ -1,0 +1,194 @@
+/* Individual Testimonial Card Styles */
+.rating-card {
+  width: var(--card-width);
+  flex-shrink: 0; /* Prevents flex track from shrinking the card sizes */
+  border-radius: 16px;
+  padding: 32px;
+  box-sizing: border-box;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+/* Side Cards styling (Marquee standard card style) */
+.side-card {
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #2c3e50;
+  transform: scale(1);
+  opacity: 1;
+}
+
+.side-card:hover {
+  transform: scale(1.08);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+  z-index: 5; /* Pushes the hovered card to the foreground */
+  background-color: #0c0c0c;
+  color: #ffffff;
+  border-color: #0c0c0c;
+}
+
+/* Child transitions for card hover colors */
+.user-name, .testimonial-text, .quote-icon, .star-icon.empty {
+  transition: all 0.3s ease;
+}
+
+.side-card:hover .user-name {
+  color: #ffffff;
+}
+
+.side-card:hover .testimonial-text {
+  color: #e0e0e0;
+}
+
+.side-card:hover .quote-icon {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.side-card:hover .user-avatar {
+  border-color: #FDB101;
+}
+
+.side-card:hover .star-icon.empty {
+  fill: #3b3b3b;
+}
+
+/* Active (Center) Card styling */
+.active-card {
+  background-color: #0c0c0c;
+  color: #ffffff;
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+  z-index: 2;
+  border: 1px solid #0c0c0c;
+}
+
+.active-card:hover {
+  transform: translateY(-12px) scale(1.05);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+/* Card Header */
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-info-block {
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.active-card .user-avatar {
+  border-color: #FDB101;
+}
+
+.side-card .user-avatar {
+  border-color: #eaeaea;
+}
+
+.user-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.2px;
+}
+
+.side-card .user-name {
+  color: #1a1a1a;
+}
+
+.active-card .user-name {
+  color: #ffffff;
+}
+
+/* Star ratings */
+.stars-container {
+  gap: 3px;
+}
+
+.star-icon {
+  display: inline-block;
+}
+
+.star-icon.empty {
+  fill: #e2e8f0;
+}
+
+.active-card .star-icon.empty {
+  fill: #3b3b3b;
+}
+
+/* Quote Icon Container */
+.quote-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quote-icon {
+  transform: rotate(180deg);
+  transition: color 0.3s ease;
+}
+
+.side-card .quote-icon {
+  color: #eaeaea;
+}
+
+.active-card .quote-icon {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+/* Review text */
+.card-body-text {
+  margin-top: 24px;
+}
+
+.testimonial-text {
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.side-card .testimonial-text {
+  color: #555555;
+}
+
+.active-card .testimonial-text {
+  color: #e0e0e0;
+}
+
+/* Responsive details for cards */
+@media (max-width: 991px) {
+  .rating-card {
+    padding: 28px;
+  }
+}
+
+@media (max-width: 576px) {
+  .rating-card {
+    padding: 24px;
+  }
+
+  .user-avatar {
+    width: 56px;
+    height: 56px;
+  }
+
+  .user-name {
+    font-size: 16px;
+  }
+
+  .testimonial-text {
+    font-size: 14px;
+  }
+}

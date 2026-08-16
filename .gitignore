@@ -1,0 +1,16 @@
+# E-commerce Git Ignore Rules
+# Ignore local node packages and compilation builds
+
+front-end/node_modules/
+front-end/build/
+front-end/.pnp
+front-end/.pnp.js
+front-end/coverage/
+front-end/npm-debug.log*
+front-end/yarn-debug.log*
+front-end/yarn-error.log*
+front-end/.env*
+
+# OS specific files
+.DS_Store
+Thumbs.db

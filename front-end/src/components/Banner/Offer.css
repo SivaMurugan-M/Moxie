@@ -1,0 +1,33 @@
+.offer-bar{
+    color:#000;
+    text-align:center;
+    padding:12px 0;
+    font-size:16px;
+    font-weight:600;
+    overflow:hidden;
+    width:100%;
+    display:flex;
+    align-items:center;
+    position:relative;
+}
+
+.offer-track {
+    display:flex;
+    white-space:nowrap;
+    animation:marquee 25s linear infinite;
+    width:max-content;
+}
+
+.offer-item {
+    padding:0 50px;
+    display:inline-block;
+}
+
+@keyframes marquee {
+    0% {
+        transform:translateX(0);
+    }
+    100% {
+        transform:translateX(-50%);
+    }
+}

@@ -1,0 +1,599 @@
+/**
+ * Moxie Profile & Account Styles
+ * Custom styles for My Account Dashboard, Sidebar, Address Book, and Tracking Timeline.
+ */
+
+.profile-page-container {
+  padding: 40px 0;
+  min-height: 80vh;
+}
+
+.profile-layout-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 30px;
+  align-items: start;
+}
+
+/* Sidebar Styling */
+.profile-sidebar-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  padding: 24px;
+}
+
+.profile-user-summary {
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.profile-summary-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #FDB101;
+  margin-bottom: 12px;
+  box-shadow: 0 5px 15px rgba(253, 177, 1, 0.2);
+}
+
+.profile-summary-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a252f;
+  margin: 0 0 4px 0;
+  text-transform: capitalize;
+}
+
+.profile-summary-email {
+  font-size: 13px;
+  color: #7f8c8d;
+  margin: 0;
+  word-break: break-all;
+}
+
+.profile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.profile-menu-btn:hover {
+  background-color: rgba(253, 177, 1, 0.08);
+  color: #FDB101;
+}
+
+.profile-menu-btn.active {
+  background-color: #FDB101;
+  color: #0c0c0c;
+}
+
+.profile-menu-btn-logout {
+  margin-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding-top: 16px;
+  color: #e74c3c;
+}
+
+.profile-menu-btn-logout:hover {
+  background-color: rgba(231, 76, 60, 0.08);
+  color: #c0392b;
+}
+
+/* Mobile Tabs Selection Dropdown */
+.profile-mobile-nav {
+  display: none;
+  margin-bottom: 24px;
+}
+
+.profile-mobile-select {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c3e50;
+  background-color: #ffffff;
+  cursor: pointer;
+}
+
+/* Right Content panel */
+.profile-content-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  padding: 30px;
+  min-height: 480px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.panel-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a252f;
+  margin: 0;
+}
+
+/* Dashboard Details tab */
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.detail-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.detail-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #95a5a6;
+  margin-bottom: 6px;
+}
+
+.detail-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.avatar-upload-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.avatar-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-url-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+/* Form Styles */
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.profile-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #34495e;
+}
+
+.profile-form-group input,
+.profile-form-group select {
+  padding: 10px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.profile-form-group input:focus,
+.profile-form-group select:focus {
+  border-color: #FDB101;
+  outline: none;
+}
+
+.profile-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* Order Card & Tracking Style */
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.order-item-card {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 20px;
+  background-color: #ffffff;
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.order-id-block h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: #2c3e50;
+}
+
+.order-date-text {
+  font-size: 12px;
+  color: #7f8c8d;
+}
+
+.order-status-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.status-placed { background: #e3f2fd; color: #1e88e5; }
+.status-confirmed { background: #e8f5e9; color: #43a047; }
+.status-packed { background: #fff8e1; color: #ffb300; }
+.status-shipped { background: #f3e5f5; color: #8e24aa; }
+.status-out-for-delivery { background: #efebe9; color: #6d4c41; }
+.status-delivered { background: #e8f5e9; color: #2e7d32; }
+.status-cancelled { background: #ffebee; color: #c62828; }
+
+.order-card-body {
+  display: flex;
+  gap: 20px;
+}
+
+.order-body-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 8px;
+  object-fit: contain;
+  background-color: #f8f9fa;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.order-body-info {
+  flex: 1;
+}
+
+.order-product-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a252f;
+  margin: 0 0 6px 0;
+}
+
+.order-product-meta {
+  font-size: 12px;
+  color: #95a5a6;
+  margin-bottom: 4px;
+}
+
+.order-total-amount {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.order-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding-top: 16px;
+}
+
+/* Real-Time Order Tracking Timeline */
+.tracking-timeline-container {
+  margin-bottom: 30px;
+  padding: 10px 0;
+}
+
+.timeline-steps {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timeline-steps::before {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #e2e8f0;
+  z-index: 1;
+}
+
+.timeline-progress-bar {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  height: 4px;
+  background-color: #FDB101;
+  z-index: 2;
+  transition: width 0.4s ease;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 3;
+  width: 80px;
+  text-align: center;
+}
+
+.timeline-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 3px solid #cbd5e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #718096;
+  margin-bottom: 8px;
+  transition: all 0.3s;
+}
+
+.timeline-step.active .timeline-circle {
+  border-color: #FDB101;
+  background-color: #ffffff;
+  color: #FDB101;
+  box-shadow: 0 0 10px rgba(253, 177, 1, 0.4);
+}
+
+.timeline-step.completed .timeline-circle {
+  border-color: #FDB101;
+  background-color: #FDB101;
+  color: #0c0c0c;
+}
+
+.timeline-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #718096;
+  text-transform: uppercase;
+}
+
+.timeline-step.active .timeline-label,
+.timeline-step.completed .timeline-label {
+  color: #1a252f;
+}
+
+.timeline-step-time {
+  font-size: 9px;
+  color: #a0aec0;
+  margin-top: 2px;
+}
+
+/* Shipping Details layout */
+.tracking-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.meta-col h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.meta-row {
+  display: flex;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.meta-label {
+  width: 140px;
+  font-weight: 600;
+  color: #7f8c8d;
+}
+
+.meta-val {
+  flex: 1;
+  color: #2c3e50;
+}
+
+/* Address Cards Layout */
+.addresses-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.address-item-card {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 20px;
+  position: relative;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.address-item-card.is-default {
+  border-color: #FDB101;
+  box-shadow: 0 5px 15px rgba(253, 177, 1, 0.05);
+}
+
+.address-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  background-color: #f1f2f6;
+  color: #2c3e50;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.address-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 8px 0;
+}
+
+.address-details {
+  font-size: 13px;
+  color: #7f8c8d;
+  line-height: 1.5;
+  margin: 0 0 12px 0;
+  flex: 1;
+}
+
+.address-phone {
+  font-size: 13px;
+  font-weight: 600;
+  color: #34495e;
+  margin: 0 0 16px 0;
+}
+
+.address-actions {
+  display: flex;
+  gap: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding-top: 14px;
+}
+
+/* Account Security list */
+.security-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.security-row-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  padding-bottom: 16px;
+}
+
+.security-info h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 4px 0;
+}
+
+.security-info p {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin: 0;
+}
+
+.verification-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  margin-left: 10px;
+}
+
+.verified { background-color: #e8f5e9; color: #2e7d32; }
+.not-verified { background-color: #ffebee; color: #c62828; }
+
+/* Responsive break points */
+@media (max-width: 991px) {
+  .profile-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .profile-sidebar-card {
+    display: none;
+  }
+
+  .profile-mobile-nav {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .addresses-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tracking-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .order-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

@@ -1,0 +1,91 @@
+/* Reviews Marquee Section Styles */
+:root {
+  --card-width: 380px;
+  --card-gap: 24px;
+}
+
+@media (max-width: 991px) {
+  :root {
+    --card-width: 320px;
+    --card-gap: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  :root {
+    --card-width: 280px;
+    --card-gap: 12px;
+  }
+}
+
+.rating-section {
+  padding: 80px 0;
+  background-color: #fafafa;
+  overflow: hidden;
+}
+
+.rating-heading {
+  font-size: 38px;
+  font-weight: 800;
+  color: #1a1a1a;
+  position: relative;
+  display: inline-block;
+  left: 50%;
+  transform: translateX(-50%);
+  padding-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+
+.rating-heading::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background-color: #FDB101;
+  border-radius: 2px;
+}
+
+/* Continuous Marquee Viewport Container */
+.reviews-marquee-wrapper {
+  overflow: hidden;
+  width: 100%;
+  padding: 30px 0; /* Add padding to prevent clipping card hover scale and shadows */
+  position: relative;
+}
+
+/* Marquee Track */
+.reviews-marquee-track {
+  display: flex;
+  gap: var(--card-gap);
+  width: max-content;
+  animation: marquee-reviews 35s linear infinite;
+}
+
+/* Pause the auto-scroll marquee when hovered */
+.reviews-marquee-wrapper:hover .reviews-marquee-track {
+  animation-play-state: paused;
+}
+
+/* Keyframes for seamless translation (translates by exactly half the track width) */
+@keyframes marquee-reviews {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Responsive Media Queries */
+@media (max-width: 576px) {
+  .rating-section {
+    padding: 50px 0;
+  }
+
+  .rating-heading {
+    font-size: 30px;
+  }
+}

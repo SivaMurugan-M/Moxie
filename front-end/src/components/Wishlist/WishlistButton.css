@@ -1,0 +1,29 @@
+.wishlist-btn-shared {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #eaeaea;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 4;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  color: #666;
+}
+
+.wishlist-btn-shared:hover {
+  transform: scale(1.1);
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  color: #111;
+}
+
+.wishlist-btn-shared.liked {
+  background: #ffffff;
+  border-color: rgba(255, 75, 92, 0.15);
+  color: #ff4b5c;
+  box-shadow: 0 2px 8px rgba(255, 75, 92, 0.1);
+}

@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+html, body {
+  overflow-x: hidden;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  background-color: #fafbfc;
+}
+
+/* Clear focus outlines to keep UI clean and consistent */
+*:focus-visible {
+  outline: none;
+}
+
+*{box-sizing:border-box}button,input,select{font:inherit}.page-shell{width:min(1180px,calc(100% - 40px));margin-left:auto;margin-right:auto}.eyebrow{color:#a36f00;text-transform:uppercase;font-size:11px;letter-spacing:2px;font-weight:800}.primary-btn,.secondary-btn{display:inline-block;text-decoration:none;text-align:center;border-radius:999px;padding:12px 20px;font-weight:800;cursor:pointer}.primary-btn{background:#fdb101;color:#111;border:0}.secondary-btn{background:#fff;color:#111;border:1px solid #ccc}.section-heading{display:flex;align-items:end;justify-content:space-between;margin-bottom:24px}.section-heading h2{font-size:clamp(27px,4vw,38px);margin:5px 0 0}.section-heading>a{color:#222;text-decoration:none;font-size:13px;font-weight:800}.product-shelf{padding-top:60px;padding-bottom:15px}
+
+.shelf-grid {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding-bottom: 20px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE & Edge */
+}
+.shelf-grid::-webkit-scrollbar {
+  display: none; /* Chrome & Safari */
+}
+.shelf-grid .product-card {
+  flex: 0 0 220px;
+}
+
+.empty-state{width:min(680px,calc(100% - 40px));margin:0 auto;text-align:center;padding:90px 20px 120px}.empty-icon{width:74px;height:74px;margin:0 auto 22px;background:#fff4d8;border-radius:50%;display:grid;place-items:center;font-weight:900}.app-toast{position:fixed;z-index:3000;left:50%;bottom:25px;transform:translate(-50%,30px);background:#111;color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s}.app-toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:900px){
+  .shelf-grid .product-card {
+    flex: 0 0 180px;
+  }
+}
+@media(max-width:520px){
+  .page-shell{width:min(100% - 24px,1180px)}
+  .shelf-grid {
+    gap: 15px;
+    padding-bottom: 15px;
+  }
+  .shelf-grid .product-card {
+    flex: 0 0 150px;
+  }
+  .product-shelf{padding-top:42px}
+}
