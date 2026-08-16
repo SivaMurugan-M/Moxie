@@ -1,0 +1,18 @@
+# Moxie E-commerce Unified Git Ignore Rules
+# Note: Placed inside front-end/src folder
+
+# Ignore package files and lock configs
+package.json
+package-lock.json
+node_modules/
+build/
+.pnp
+.pnp.js
+coverage/
+
+# OS specific files and debug logs
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+.env*
