@@ -1,0 +1,22 @@
+# Moxie Front-end Git Ignore Rules
+# Target dependencies, builds, and configuration keys
+
+# Ignore local packages & locks
+package.json
+package-lock.json
+/node_modules/
+
+# Ignore build directory
+/build/
+
+# Miscellaneous test/temp files
+/coverage/
+.pnp
+.pnp.js
+*.log
+*.tmp
+.env*
+
+# OS specific files
+.DS_Store
+Thumbs.db
