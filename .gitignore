@@ -1,9 +1,11 @@
 # E-commerce Git Ignore Rules
 
+# Ignore package files globally
+package.json
+package-lock.json
+
 # Root dependencies (make single node_modules)
 /node_modules/
-/package.json
-/package-lock.json
 
 # Front-end sub-directory dependencies & builds
 front-end/node_modules/
