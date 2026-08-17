@@ -2,8 +2,6 @@
 # Target dependencies, builds, and configuration keys
 
 # Ignore local packages & locks
-package.json
-package-lock.json
 /node_modules/
 
 # Ignore build directory
