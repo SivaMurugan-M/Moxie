@@ -8,24 +8,9 @@ import Offer from "./Offer";
 const slides = [
   {
     type: "video",
-    tag: "TRENDING TECH",
-    title: (
-      <>
-        UPGRADE YOUR STYLE
-        <br />
-        <span>SHOP THE LATEST</span>
-      </>
-    ),
-    description: "Discover premium watches, smart accessories and everyday essentials designed for your lifestyle.",
-    buttonText: "Shop Now →",
     video: BannerVideo,
     link: "/products/watches",
     background: "#0c0c0c",
-    textColor: "#ffffff",
-    spanColor: "#FDB101",
-    descColor: "#e2e8f0",
-    btnBackground: "#ffffff",
-    btnTextColor: "#0c0c0c",
   },
   {
     type: "image",
@@ -173,14 +158,21 @@ function Hero() {
                 }}
               >
                 <div className="hero-slide-container">
-                  <div className="hero-content-left">
-                    <span className="hero-tag">{slide.tag}</span>
-                    <h1>{slide.title}</h1>
-                    <p>{slide.description}</p>
-                    <Link to={slide.link || "/products/watches"} className="shop-btn" style={{ textDecoration: "none" }}>
-                      {slide.buttonText}
-                    </Link>
-                  </div>
+                  {/* Left text content rendered only for non-video slides */}
+                  {slide.type !== "video" && (
+                    <div className="hero-content-left">
+                      {slide.tag && <span className="hero-tag">{slide.tag}</span>}
+                      {slide.title && <h1>{slide.title}</h1>}
+                      {slide.description && <p>{slide.description}</p>}
+                      {slide.buttonText && (
+                        <Link to={slide.link || "/products/watches"} className="shop-btn" style={{ textDecoration: "none" }}>
+                          {slide.buttonText}
+                        </Link>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Media container */}
                   <div className="hero-media-right">
                     {slide.type === "video" ? (
                       <video

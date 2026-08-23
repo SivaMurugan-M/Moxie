@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { WishlistContext } from "../../../context/WishlistContext";
 import { CartContext } from "../../../context/CartContext";
 import { AuthContext } from "../../../context/AuthContext";
+import { useModal } from "../../../context/ModalContext";
+import AccountDropdown from "../../auth/AccountDropdown";
 import categories from "../../../data/categories";
 import CategoryIcon from "../../../assets/icons/categories.svg";
 import WishlistIcon from "../../../assets/icons/wishlist.svg";
@@ -13,15 +15,25 @@ import "./NavMenu.css";
 function NavMenu() {
   const { wishlistCount } = useContext(WishlistContext);
   const { cartCount } = useContext(CartContext);
-  const { user } = useContext(AuthContext);
-  
-  const [showDropdown, setShowDropdown] = useState(false);
-  const categoryRef = useRef(null);
+  const { user, isLoggedIn, logout } = useContext(AuthContext);
+  const { openLogin } = useModal();
+  const location = useLocation();
+  const navigate = useNavigate();
 
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const categoryRef = useRef(null);
+  const userMenuRef = useRef(null);
+
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (categoryRef.current && !categoryRef.current.contains(event.target)) {
         setShowDropdown(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -29,6 +41,34 @@ function NavMenu() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Handle Profile click
+  const handleProfileClick = () => {
+    if (user || isLoggedIn) {
+      // Toggle account dropdown for logged-in user
+      setShowUserMenu((prev) => !prev);
+    } else {
+      // Logged-out user
+      if (location.pathname === "/") {
+        // Already on home page -> directly open modal in front of homepage
+        openLogin();
+      } else {
+        // On another page (e.g. /register) -> navigate home with openProfile state
+        navigate("/", {
+          state: {
+            openProfile: true,
+          },
+        });
+      }
+    }
+  };
+
+  // Handle Logout
+  const handleLogout = () => {
+    logout();
+    setShowUserMenu(false);
+    navigate("/", { replace: true });
+  };
 
   return (
     <div className="nav-menu">
@@ -111,10 +151,28 @@ function NavMenu() {
         <span>CART</span>
       </Link>
 
-      <Link to={user ? "/profile" : "/login"} className="nav-item" style={{ textDecoration: "none", color: "inherit" }}>
-        <img src={ProfileIcon} alt="Profile" />
-        <span>PROFILE</span>
-      </Link>
+      {/* Profile Nav Item */}
+      <div ref={userMenuRef} className="nav-item position-relative">
+        <button
+          id="nav-profile-btn"
+          type="button"
+          className="profile-button nav-item nav-item--btn"
+          onClick={handleProfileClick}
+          aria-label={user || isLoggedIn ? "User account menu" : "Sign in to your account"}
+        >
+          <img src={ProfileIcon} alt="Profile" />
+          <span>{user?.name ? user.name.toUpperCase() : "PROFILE"}</span>
+        </button>
+
+        {/* Logged In Account Dropdown */}
+        {(user || isLoggedIn) && showUserMenu && (
+          <AccountDropdown
+            user={user}
+            onLogout={handleLogout}
+            onClose={() => setShowUserMenu(false)}
+          />
+        )}
+      </div>
 
     </div>
   );

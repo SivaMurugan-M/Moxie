@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Banner from "../../components/Banner/Hero";
 import Feature from "../../components/Features/Feature";
 import Category from "../../components/category/Category";
@@ -6,8 +7,23 @@ import SpecialOffer from "../../components/Special officer/SpecialOffer";
 import Reviews from "../../components/Reviews/Reviews";
 import ProductShelf from "../../components/Product/ProductShelf";
 import products from "../../data/products";
+import { useModal } from "../../context/ModalContext";
 
 function Home() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { openLogin } = useModal();
+
+  useEffect(() => {
+    if (location.state?.openProfile || location.state?.openLogin) {
+      openLogin();
+
+      navigate("/", {
+        replace: true,
+        state: {},
+      });
+    }
+  }, [location.state, navigate, openLogin]);
   // 1. Get all in-stock products
   const inStockProducts = products.filter((p) => p.stock);
 
