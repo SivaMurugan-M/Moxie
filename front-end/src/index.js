@@ -20,25 +20,17 @@ root.render(
     <React.StrictMode>
         <ToastProvider>
             <AuthProvider>
-<<<<<<< HEAD
                 <DataProvider>
                     <WishlistProvider>
                         <CartProvider>
-                            <BrowserRouter><App /></BrowserRouter>
+                            <BrowserRouter>
+                                <ModalProvider>
+                                    <App />
+                                </ModalProvider>
+                            </BrowserRouter>
                         </CartProvider>
                     </WishlistProvider>
                 </DataProvider>
-=======
-                <WishlistProvider>
-                    <CartProvider>
-                        <BrowserRouter>
-                            <ModalProvider>
-                                <App />
-                            </ModalProvider>
-                        </BrowserRouter>
-                    </CartProvider>
-                </WishlistProvider>
->>>>>>> 23d44bc0bb102da7097d7af44c01999644a2c9fa
             </AuthProvider>
         </ToastProvider>
     </React.StrictMode>

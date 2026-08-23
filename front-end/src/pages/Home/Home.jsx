@@ -6,13 +6,14 @@ import Category from "../../components/category/Category";
 import SpecialOffer from "../../components/SpecialOffer/SpecialOffer";
 import Reviews from "../../components/Reviews/Reviews";
 import ProductShelf from "../../components/Product/ProductShelf";
-import products from "../../data/products";
+import { useData } from "../../context/DataContext";
 import { useModal } from "../../context/ModalContext";
 
 function Home() {
   const location = useLocation();
   const navigate = useNavigate();
   const { openLogin } = useModal();
+  const { products, loading } = useData();
 
   useEffect(() => {
     if (location.state?.openProfile || location.state?.openLogin) {
@@ -24,6 +25,17 @@ function Home() {
       });
     }
   }, [location.state, navigate, openLogin]);
+
+  if (loading) {
+    return (
+      <div className="d-flex align-items-center justify-content-center" style={{ minHeight: "60vh" }}>
+        <div className="spinner-border text-warning" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   // 1. Get all in-stock products
   const inStockProducts = products.filter((p) => p.stock);
 

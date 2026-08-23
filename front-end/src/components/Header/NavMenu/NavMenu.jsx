@@ -3,13 +3,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { WishlistContext } from "../../../context/WishlistContext";
 import { CartContext } from "../../../context/CartContext";
 import { AuthContext } from "../../../context/AuthContext";
-<<<<<<< HEAD
 import { useData } from "../../../context/DataContext";
-=======
 import { useModal } from "../../../context/ModalContext";
 import AccountDropdown from "../../auth/AccountDropdown";
-import categories from "../../../data/categories";
->>>>>>> 23d44bc0bb102da7097d7af44c01999644a2c9fa
 import CategoryIcon from "../../../assets/icons/categories.svg";
 import WishlistIcon from "../../../assets/icons/wishlist.svg";
 import CartIcon from "../../../assets/icons/cart.svg";
@@ -19,18 +15,11 @@ import "./NavMenu.css";
 function NavMenu() {
   const { wishlistCount } = useContext(WishlistContext);
   const { cartCount } = useContext(CartContext);
-<<<<<<< HEAD
-  const { user } = useContext(AuthContext);
-  const { categories } = useData();
-  
-  const [showDropdown, setShowDropdown] = useState(false);
-  const categoryRef = useRef(null);
-=======
   const { user, isLoggedIn, logout } = useContext(AuthContext);
+  const { categories } = useData();
   const { openLogin } = useModal();
   const location = useLocation();
   const navigate = useNavigate();
->>>>>>> 23d44bc0bb102da7097d7af44c01999644a2c9fa
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
