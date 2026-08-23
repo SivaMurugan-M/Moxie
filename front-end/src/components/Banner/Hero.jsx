@@ -5,6 +5,7 @@ import Banner from "../../assets/images/banner2.png";
 import BannerVideo from "../../assets/Video/banner_video.mp4";
 import Offer from "./Offer";
 
+<<<<<<< HEAD
 const API_ORIGIN = "http://127.0.0.1:8000";
 
 const getBannerImageUrl = (image) => {
@@ -16,6 +17,82 @@ const getBannerImageUrl = (image) => {
     return image;
   }
 };
+=======
+const slides = [
+  {
+    type: "video",
+    video: BannerVideo,
+    link: "/products/watches",
+    background: "#0c0c0c",
+  },
+  {
+    type: "image",
+    tag: "TRENDING TECH",
+    title: (
+      <>
+        UPGRADE YOUR STYLE
+        <br />
+        <span>SHOP THE LATEST</span>
+      </>
+    ),
+    description: "Discover premium watches, smart accessories and everyday essentials designed for your lifestyle.",
+    buttonText: "Shop Now →",
+    image: Banner,
+    link: "/products/watches",
+    background: "#f5f5f7",
+    duration: 5000,
+    textColor: "#000000",
+    spanColor: "#FDB101",
+    descColor: "#555555",
+    btnBackground: "#000000",
+    btnTextColor: "#ffffff",
+  },
+  {
+    type: "image",
+    tag: "EXCLUSIVE OFFER",
+    title: (
+      <>
+        PREMIUM TECH.
+        <br />
+        <span>BETTER LIFESTYLE.</span>
+      </>
+    ),
+    description: "Shop premium watches, earbuds, shoes and everyday accessories at great prices.",
+    buttonText: "Explore Deals →",
+    image: Banner,
+    link: "/products/deals",
+    background: "#FDB101",
+    duration: 5000,
+    textColor: "#000000",
+    spanColor: "#ffffff",
+    descColor: "#1a1a1a",
+    btnBackground: "#000000",
+    btnTextColor: "#ffffff",
+  },
+  {
+    type: "image",
+    tag: "DISCOVER MORE",
+    title: (
+      <>
+        PRODUCTS YOU'LL LOVE
+        <br />
+        <span>BEST QUALITY</span>
+      </>
+    ),
+    description: "Upgrade your routine with our top trending tech accessories and everyday gear.",
+    buttonText: "Explore Now →",
+    image: Banner,
+    link: "/products/accessories",
+    background: "#111111",
+    duration: 5000,
+    textColor: "#ffffff",
+    spanColor: "#FDB101",
+    descColor: "#e2e8f0",
+    btnBackground: "#ffffff",
+    btnTextColor: "#0c0c0c",
+  },
+];
+>>>>>>> f336c0d6403edf7f2fa7c6b882caae2ede58acbc
 
 function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);

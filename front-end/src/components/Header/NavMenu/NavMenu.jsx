@@ -3,9 +3,15 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { WishlistContext } from "../../../context/WishlistContext";
 import { CartContext } from "../../../context/CartContext";
 import { AuthContext } from "../../../context/AuthContext";
+<<<<<<< HEAD
 import { useData } from "../../../context/DataContext";
 import { useModal } from "../../../context/ModalContext";
 import AccountDropdown from "../../auth/AccountDropdown";
+=======
+import { useModal } from "../../../context/ModalContext";
+import AccountDropdown from "../../auth/AccountDropdown";
+import categories from "../../../data/categories";
+>>>>>>> f336c0d6403edf7f2fa7c6b882caae2ede58acbc
 import CategoryIcon from "../../../assets/icons/categories.svg";
 import WishlistIcon from "../../../assets/icons/wishlist.svg";
 import CartIcon from "../../../assets/icons/cart.svg";

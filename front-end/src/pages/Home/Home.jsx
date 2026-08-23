@@ -6,7 +6,11 @@ import Category from "../../components/category/Category";
 import SpecialOffer from "../../components/SpecialOffer/SpecialOffer";
 import Reviews from "../../components/Reviews/Reviews";
 import ProductShelf from "../../components/Product/ProductShelf";
+<<<<<<< HEAD
 import { useData } from "../../context/DataContext";
+=======
+import products from "../../data/products";
+>>>>>>> f336c0d6403edf7f2fa7c6b882caae2ede58acbc
 import { useModal } from "../../context/ModalContext";
 
 function Home() {
@@ -25,6 +29,7 @@ function Home() {
       });
     }
   }, [location.state, navigate, openLogin]);
+<<<<<<< HEAD
 
   if (loading) {
     return (
@@ -36,6 +41,8 @@ function Home() {
     );
   }
 
+=======
+>>>>>>> f336c0d6403edf7f2fa7c6b882caae2ede58acbc
   // 1. Get all in-stock products
   const inStockProducts = products.filter((p) => p.stock);
 
