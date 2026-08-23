@@ -1,25 +1,36 @@
 .hero {
-    background: #fff;
-    padding: 20px 20px;
+    background: #000;
+    padding:0;
+    width: 100%;
+    margin: 0;
+    min-height: 75vh;
 }
 
 .hero-container {
-    max-width: 1400px;
-    margin: auto;
+    width: 100%;
+    height: 75vh;
+    max-width:none;
+    margin:0;
     position: relative;
     overflow: hidden;
-    border-radius: 16px;
+    border-radius:0;
+
+
+
 }
 
 .hero-slide-wrapper {
     display: flex;
     transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     width: 100%;
+    height: 75%;
+
 }
 
 .hero-slide {
     flex: 0 0 100%;
     position: relative;
+    height: 75vh;
     width: 100%;
     background-color: #f5f5f7; /* Default light base */
     overflow: hidden;
@@ -34,6 +45,7 @@
     width: 100%;
     aspect-ratio: 21 / 8; /* Shorter desktop height ratio (approx 530px at 1400px width) */
     box-sizing: border-box;
+    height: 75vh;
 }
 
 /* Left content container */
@@ -57,34 +69,49 @@
     right: 0;
     top: 0;
     width: 60%;
-    height: 100%;
+    height: 75vh;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    padding: 20px 40px 20px 0; /* Constraints to prevent edge overlap/touching */
+    justify-content: center;
+    padding:0; /* Constraints to prevent edge overlap/touching */
     box-sizing: border-box;
-    z-index: 2;
+    z-index: 1;
 }
 
 /* Product Image styling */
 .hero-image {
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain; /* Shows complete products, no cropping */
+    object-fit: cover; /* Shows complete products, no cropping */
     object-position: right center; /* Pushes products slightly toward right */
     display: block;
-    border-radius: 16px;
+    border-radius: 0;
 }
 
 /* Product Video styling */
 .hero-video {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain; /* Shows complete products, no cropping */
-    object-position: right center; /* Pushes video slightly toward right */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
     display: block;
-    border-radius: 16px;
+    border-radius: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }
+
+/* Video slide full width overrides */
+.video-slide .hero-media-right {
+    width: 100%;
+    height: 100%;
+    left: 0;
+    right: 0;
+    top: 0;
+    padding: 0;
+}
+
 
 /* Typography & Visual Details driven by slide CSS variables */
 .hero-tag {
@@ -108,9 +135,9 @@
     letter-spacing: -0.5px;
 }
 
-.hero-content-left h1 span {
-    color: var(--slide-span-color, #FDB101);
-}
+/* .hero-content-left h1 span { */
+    /* color: var(--slide-span-color, #FDB101); */
+/* } */
 
 .hero-content-left p {
     margin: 12px 0 24px;
@@ -263,6 +290,20 @@
         aspect-ratio: 16 / 10; /* Clean landscape ratio for product media on mobile */
         justify-content: center;
         padding: 10px 20px;
+    }
+
+    .video-slide .hero-slide-container {
+        padding: 0;
+        height: 75vh;
+    }
+
+    .video-slide .hero-media-right {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 0;
     }
 
     .hero-image,
