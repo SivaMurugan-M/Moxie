@@ -5,7 +5,6 @@ import Banner from "../../assets/images/banner2.png";
 import BannerVideo from "../../assets/Video/banner_video.mp4";
 import Offer from "./Offer";
 
-<<<<<<< HEAD
 const API_ORIGIN = "http://127.0.0.1:8000";
 
 const getBannerImageUrl = (image) => {
@@ -17,7 +16,6 @@ const getBannerImageUrl = (image) => {
     return image;
   }
 };
-=======
 const slides = [
   {
     type: "video",
@@ -92,7 +90,6 @@ const slides = [
     btnTextColor: "#0c0c0c",
   },
 ];
->>>>>>> f336c0d6403edf7f2fa7c6b882caae2ede58acbc
 
 function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -152,7 +149,7 @@ function Hero() {
       });
   }, []);
 
-  const activeSlides = banners;
+  const activeSlides = banners.length > 0 ? banners : slides;
 
   const nextSlide = useCallback(() => {
     if (activeSlides.length === 0) return;
@@ -206,10 +203,6 @@ function Hero() {
         </section>
       </>
     );
-  }
-
-  if (activeSlides.length === 0) {
-    return <Offer />;
   }
 
   return (

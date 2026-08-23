@@ -57,7 +57,7 @@ export default function ProductDetails() {
         } catch {
             return [];
         }
-    }, [product]);
+    }, [product, products]);
     if (loading) {
         return (
             <div className="container text-center py-5" style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>

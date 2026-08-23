@@ -73,7 +73,7 @@ export default function Products() {
     };
 
     return list.sort(sorters[sort]);
-  }, [slug, subSlug, activeCategory, query, maxPrice, minRating, availability, minDiscount, sort]);
+  }, [products, slug, subSlug, activeCategory, query, maxPrice, minRating, availability, minDiscount, sort]);
 
   if (loading) {
     return (
