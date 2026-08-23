@@ -1,0 +1,231 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moxie Admin Login</title>
+    <!-- Google Fonts: Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #faf6f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #1a1a1a;
+            padding: 20px;
+        }
+        .login-container {
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+        }
+        .header-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            letter-spacing: -0.5px;
+        }
+        .header-title span {
+            color: #fdb101;
+        }
+        .login-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            text-align: left;
+            margin-bottom: 24px;
+        }
+        .card-heading {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .card-sub {
+            font-size: 14px;
+            color: #8c8c8c;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            font-size: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .form-group input:focus {
+            border-color: #fdb101;
+            box-shadow: 0 0 0 3px rgba(253, 177, 1, 0.1);
+        }
+        .form-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0a0a0;
+            display: flex;
+            align-items: center;
+        }
+        .form-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+        .row-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .checkbox-container input {
+            margin-right: 8px;
+            accent-color: #fdb101;
+            width: 16px;
+            height: 16px;
+        }
+        .forgot-link {
+            color: #fdb101;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+        .submit-btn {
+            width: 100%;
+            background: #1a1a1a;
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .submit-btn:hover {
+            background: #000000;
+            transform: translateY(-1px);
+        }
+        .footer-text {
+            font-size: 14px;
+            color: #8c8c8c;
+        }
+        .footer-text a {
+            color: #fdb101;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-text a:hover {
+            text-decoration: underline;
+        }
+        .errornote {
+            background-color: #ffeded;
+            border: 1px solid #ffcdd2;
+            color: #d32f2f;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .errorlist {
+            color: #d32f2f;
+            font-size: 13px;
+            margin-top: 4px;
+            list-style: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h1 class="header-title">Welcome to <span>Moxie</span> Admin Dashboard</h1>
+
+    <div class="login-card">
+        <h2 class="card-heading">Welcome Back! 👋</h2>
+        <p class="card-sub">Sign in to your admin account</p>
+
+        {% if form.errors and not form.non_field_errors %}
+            <p class="errornote">
+                {% if form.errors.items|length == 1 %}{% translate "Please correct the error below." %}{% else %}{% translate "Please correct the errors below." %}{% endif %}
+            </p>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <p class="errornote">{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <form action="{{ app_path }}" method="post" id="login-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <span class="form-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 11-8 0 4 4 0 018 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                    </svg>
+                </span>
+                <input type="text" name="username" id="id_username" placeholder="Enter your username" required autofocus>
+                {{ form.username.errors }}
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <span class="form-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </span>
+                <input type="password" name="password" id="id_password" placeholder="Enter your password" required>
+                {{ form.password.errors }}
+            </div>
+
+            <div class="row-options">
+                <label class="checkbox-container">
+                    <input type="checkbox" name="remember_me" checked>
+                    Remember me
+                </label>
+                <a href="#" class="forgot-link">Forgot Password?</a>
+            </div>
+
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <button type="submit" class="submit-btn">
+                Sign In &rarr;
+            </button>
+        </form>
+    </div>
+
+    <p class="footer-text">Need help? Contact <a href="mailto:support@moxiestore.com">support@moxiestore.com</a></p>
+</div>
+
+</body>
+</html>

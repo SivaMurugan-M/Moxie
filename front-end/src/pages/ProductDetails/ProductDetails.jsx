@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import products from "../../data/products";
+import { useData } from "../../context/DataContext";
 import { WishlistContext } from "../../context/WishlistContext";
 import { CartContext } from "../../context/CartContext";
 import { useToast } from "../../context/ToastContext";
@@ -12,16 +12,16 @@ export default function ProductDetails() {
     const { productId, category } = useParams();
     const navigate = useNavigate();
     const toast = useToast();
+    const { products, loading } = useData();
 
     const { addToCart } = useContext(CartContext);
     const { toggleWishlist, isInWishlist } = useContext(WishlistContext);
 
-    const product = products.find((i) => i.id === Number(productId || category));
+    const product = useMemo(() => products.find((i) => i.id === Number(productId || category)), [products, productId, category]);
 
     const [quantity, setQuantity] = useState(1);
     const [activeImage, setActiveImage] = useState(0);
     const [selectedSize, setSelectedSize] = useState(7);
-
     // Reset page states when switching products
     useEffect(() => {
         if (!product) return;
@@ -44,7 +44,7 @@ export default function ProductDetails() {
     // Filter similar items within the same category
     const related = useMemo(
         () => products.filter((i) => i.category === product?.category && i.id !== product?.id),
-        [product]
+        [products, product]
     );
 
     // Retrieve recently viewed product items from history
@@ -58,6 +58,15 @@ export default function ProductDetails() {
             return [];
         }
     }, [product]);
+    if (loading) {
+        return (
+            <div className="container text-center py-5" style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div className="spinner-border text-warning" role="status">
+                    <span className="visually-hidden">Loading product details...</span>
+                </div>
+            </div>
+        );
+    }
 
     if (!product) {
         return (
@@ -144,8 +153,12 @@ export default function ProductDetails() {
 
                         <div className="detail-price">
                             <strong>₹{product.price.toLocaleString("en-IN")}</strong>
-                            <del>₹{product.oldPrice.toLocaleString("en-IN")}</del>
-                            <span>You save ₹{(product.oldPrice - product.price).toLocaleString("en-IN")}</span>
+                            {product.oldPrice && (
+                                <>
+                                    <del>₹{product.oldPrice.toLocaleString("en-IN")}</del>
+                                    <span>You save ₹{(product.oldPrice - product.price).toLocaleString("en-IN")}</span>
+                                </>
+                            )}
                         </div>
 
                         <p>{product.description}</p>

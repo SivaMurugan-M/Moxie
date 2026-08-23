@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { WishlistContext } from "../../../context/WishlistContext";
 import { CartContext } from "../../../context/CartContext";
 import { AuthContext } from "../../../context/AuthContext";
-import categories from "../../../data/categories";
+import { useData } from "../../../context/DataContext";
 import CategoryIcon from "../../../assets/icons/categories.svg";
 import WishlistIcon from "../../../assets/icons/wishlist.svg";
 import CartIcon from "../../../assets/icons/cart.svg";
@@ -14,6 +14,7 @@ function NavMenu() {
   const { wishlistCount } = useContext(WishlistContext);
   const { cartCount } = useContext(CartContext);
   const { user } = useContext(AuthContext);
+  const { categories } = useData();
   
   const [showDropdown, setShowDropdown] = useState(false);
   const categoryRef = useRef(null);

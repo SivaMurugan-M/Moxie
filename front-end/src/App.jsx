@@ -20,6 +20,31 @@ const ProductsSelector = () => {
   return isNumeric ? <ProductDetails /> : <Products />;
 };
 
+const AdminRedirect = () => {
+  useEffect(() => {
+    window.location.href = "http://127.0.0.1:8000/admin/";
+  }, []);
+  return (
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: "60vh",
+      fontFamily: "'Outfit', sans-serif",
+      color: "#111"
+    }}>
+      <div style={{ fontSize: "24px", fontWeight: "700", marginBottom: "10px" }}>
+        Redirecting to Moxie Admin Portal...
+      </div>
+      <p style={{ color: "#8c8c8c", fontSize: "14px" }}>
+        Please wait while we redirect you to the backend admin interface.
+      </p>
+    </div>
+  );
+};
+
+
 function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const { pathname } = useLocation();
@@ -28,6 +53,7 @@ function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+
 
   return (
     <BrandIntro>
@@ -47,6 +73,8 @@ function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/deals" element={<Deals />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/admin" element={<AdminRedirect />} />
+        <Route path="/admin/dashboard" element={<AdminRedirect />} />
         <Route path="*" element={<div className="empty-state"><div className="empty-icon">404</div><h1>Page not found</h1><Link to="/" className="primary-btn">Back to home</Link></div>} />
       </Routes>
       <Footer />

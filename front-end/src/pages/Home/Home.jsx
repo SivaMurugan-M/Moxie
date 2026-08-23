@@ -2,12 +2,24 @@ import React from "react";
 import Banner from "../../components/Banner/Hero";
 import Feature from "../../components/Features/Feature";
 import Category from "../../components/category/Category";
-import SpecialOffer from "../../components/Special officer/SpecialOffer";
+import SpecialOffer from "../../components/SpecialOffer/SpecialOffer";
 import Reviews from "../../components/Reviews/Reviews";
 import ProductShelf from "../../components/Product/ProductShelf";
-import products from "../../data/products";
+import { useData } from "../../context/DataContext";
 
 function Home() {
+  const { products, loading } = useData();
+
+  if (loading) {
+    return (
+      <div className="container text-center py-5" style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="spinner-border text-warning" role="status">
+          <span className="visually-hidden">Loading products...</span>
+        </div>
+      </div>
+    );
+  }
+
   // 1. Get all in-stock products
   const inStockProducts = products.filter((p) => p.stock);
 

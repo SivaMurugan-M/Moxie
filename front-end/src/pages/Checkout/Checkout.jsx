@@ -1,5 +1,3 @@
-
-
 import React, { useContext, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
@@ -10,24 +8,44 @@ export default function Checkout() {
   const location = useLocation();
   const checkoutItem = location.state?.checkoutItem;
   
-  const [payment, setPayment] = useState("cod");
+  const [payment, setPayment] = useState("razorpay");
   const [placed, setPlaced] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   // Use the direct checkoutItem if present, otherwise fallback to the cart list
   const checkoutList = checkoutItem ? [checkoutItem] : cart;
 
   const subtotal = checkoutList.reduce((s, i) => s + i.price * i.quantity, 0);
-  const mrp = checkoutList.reduce((s, i) => s + i.oldPrice * i.quantity, 0);
+  const mrp = checkoutList.reduce((s, i) => s + (i.oldPrice || i.price) * i.quantity, 0);
   
   // Delivery Fee: Rs. 100 for each product
   const totalItems = checkoutList.reduce((acc, item) => acc + item.quantity, 0);
   const delivery = totalItems * 100;
 
-  const place = (e) => {
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const place = async (e) => {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     const next = {};
+
+    const shippingData = {
+      shipping_name: f.get("name"),
+      shipping_phone: f.get("phone"),
+      shipping_address: f.get("address"),
+      shipping_city: f.get("city"),
+      shipping_pincode: f.get("pincode"),
+    };
 
     ["name", "phone", "address", "city", "pincode"].forEach((k) => {
       if (!String(f.get(k) || "").trim()) next[k] = "Required";
@@ -42,14 +60,111 @@ export default function Checkout() {
     }
 
     setErrors(next);
+    setPaymentError("");
 
     if (!Object.keys(next).length) {
-      // Clear the cart only if checking out the cart items
-      if (!checkoutItem) {
-        clearCart();
+      if (payment === "cod") {
+        if (!checkoutItem) {
+          clearCart();
+        }
+        setPlaced(true);
+        window.scrollTo(0, 0);
+        return;
       }
-      setPlaced(true);
-      window.scrollTo(0, 0);
+
+      // Razorpay checkout integration
+      setLoading(true);
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        setPaymentError("Razorpay SDK failed to load. Are you online?");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const orderItems = checkoutList.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity
+        }));
+
+        const createOrderRes = await fetch("http://127.0.0.1:8000/api/payment/order/create/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ...shippingData,
+            items: orderItems
+          })
+        });
+
+        if (!createOrderRes.ok) {
+          const errData = await createOrderRes.json();
+          throw new Error(errData.error || "Failed to create order on server.");
+        }
+
+        const orderInfo = await createOrderRes.json();
+        
+        const options = {
+          key: orderInfo.razorpay_key_id,
+          amount: orderInfo.amount,
+          currency: orderInfo.currency,
+          name: "Moxie E-Commerce",
+          description: "Purchase of products from Moxie",
+          order_id: orderInfo.razorpay_order_id,
+          handler: async (response) => {
+            setLoading(true);
+            try {
+              const verifyRes = await fetch("http://127.0.0.1:8000/api/payment/verify/", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature
+                })
+              });
+
+              if (!verifyRes.ok) {
+                const errVal = await verifyRes.json();
+                throw new Error(errVal.error || "Payment verification failed.");
+              }
+
+              // Success! Clear cart and show placed order success page
+              if (!checkoutItem) {
+                clearCart();
+              }
+              setPlaced(true);
+              window.scrollTo(0, 0);
+            } catch (err) {
+              setPaymentError(err.message || "Something went wrong during payment verification.");
+            } finally {
+              setLoading(false);
+            }
+          },
+          prefill: {
+            name: shippingData.shipping_name,
+            contact: shippingData.shipping_phone
+          },
+          theme: {
+            color: "#6657ec"
+          },
+          modal: {
+            ondismiss: () => {
+              setLoading(false);
+              setPaymentError("Checkout window was closed by the user.");
+            }
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } catch (err) {
+        setPaymentError(err.message || "An error occurred while initiating payment.");
+        setLoading(false);
+      }
     }
   };
 
@@ -59,7 +174,7 @@ export default function Checkout() {
         <div className="success-check">✓</div>
         <span className="eyebrow">Order confirmed</span>
         <h1>Thank you for shopping with Moxie!</h1>
-        <p>Your order has been placed successfully. No payment was processed.</p>
+        <p>Your order has been placed successfully. Payment verified.</p>
         <Link className="primary-btn" to="/products">
           Continue shopping
         </Link>
@@ -108,10 +223,8 @@ export default function Checkout() {
             <h2>Payment method</h2>
             <div className="payment-options">
               {[
-                ["upi", "UPI"],
-                ["card", "Card"],
+                ["razorpay", "Razorpay (UPI / Card / NetBanking)"],
                 ["cod", "Cash on Delivery"],
-                ["wallet", "Wallet"],
               ].map(([id, title]) => (
                 <label key={id} className={payment === id ? "selected" : ""}>
                   <input
@@ -124,7 +237,11 @@ export default function Checkout() {
                 </label>
               ))}
             </div>
-            <p className="mock-note">Demo checkout only — no real payment occurs.</p>
+            <p className="mock-note">
+              {payment === "razorpay" 
+                ? "Razorpay Test Mode is active. Do not make real payments." 
+                : "Cash on Delivery mock checkout."}
+            </p>
           </section>
         </div>
 
@@ -161,13 +278,16 @@ export default function Checkout() {
               <dd>₹{(subtotal + delivery).toLocaleString("en-IN")}</dd>
             </div>
           </dl>
-          <button className="primary-btn">Place mock order</button>
+          <button className="primary-btn" disabled={loading}>
+            {loading ? "Processing..." : payment === "razorpay" ? "Pay now" : "Place mock order"}
+          </button>
+          {paymentError && (
+            <p style={{ color: "#ef4444", fontSize: "12px", marginTop: "12px", textAlign: "center", fontWeight: "600" }}>
+              {paymentError}
+            </p>
+          )}
         </aside>
       </form>
     </main>
   );
 }
-
-
-
-

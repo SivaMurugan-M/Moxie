@@ -1,12 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import categories from "../../data/categories";
+import { useData } from "../../context/DataContext";
 import "./Footer.css";
 
 // Import Moxie logo SVG
 import Moxie from "../../assets/logo/moxie.png"
 
 function Footer() {
+  const { categories } = useData();
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,

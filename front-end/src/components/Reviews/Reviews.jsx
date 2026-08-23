@@ -1,11 +1,60 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ReviewCard from "./ReviewCard";
 import "./Reviews.css";
 
-// Import reviews data
-import testimonials from "../../data/reviews";
+const API_ORIGIN = "http://127.0.0.1:8000";
+
+const getReviewImageUrl = (image) => {
+  if (!image) return null;
+  try {
+    return new URL(image, API_ORIGIN).href;
+  } catch {
+    return image;
+  }
+};
 
 function Reviews() {
+  const [testimonials, setTestimonials] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_ORIGIN}/api/reviews/`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch reviews");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        const mappedData = data.map((item) => ({
+          ...item,
+          rating: Number(item.rating),
+          image: getReviewImageUrl(item.image)
+        }));
+        setTestimonials(mappedData);
+      })
+      .catch((error) => {
+        console.error("Error loading reviews:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="container text-center py-5">
+        <div className="spinner-border text-warning" role="status">
+          <span className="visually-hidden">Loading reviews...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (testimonials.length === 0) {
+    return null;
+  }
+
   return (
     <section className="rating-section py-5">
       <div className="container">
@@ -38,3 +87,4 @@ function Reviews() {
 }
 
 export default Reviews;
+

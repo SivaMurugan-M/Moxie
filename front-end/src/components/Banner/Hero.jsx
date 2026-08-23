@@ -1,114 +1,98 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import "./Hero.css";
 import Banner from "../../assets/images/banner2.png";
 import BannerVideo from "../../assets/Video/banner_video.mp4";
 import Offer from "./Offer";
 
-const slides = [
-  {
-    type: "video",
-    tag: "TRENDING TECH",
-    title: (
-      <>
-        UPGRADE YOUR STYLE
-        <br />
-        <span>SHOP THE LATEST</span>
-      </>
-    ),
-    description: "Discover premium watches, smart accessories and everyday essentials designed for your lifestyle.",
-    buttonText: "Shop Now →",
-    video: BannerVideo,
-    link: "/products/watches",
-    background: "#0c0c0c",
-    textColor: "#ffffff",
-    spanColor: "#FDB101",
-    descColor: "#e2e8f0",
-    btnBackground: "#ffffff",
-    btnTextColor: "#0c0c0c",
-  },
-  {
-    type: "image",
-    tag: "TRENDING TECH",
-    title: (
-      <>
-        UPGRADE YOUR STYLE
-        <br />
-        <span>SHOP THE LATEST</span>
-      </>
-    ),
-    description: "Discover premium watches, smart accessories and everyday essentials designed for your lifestyle.",
-    buttonText: "Shop Now →",
-    image: Banner,
-    link: "/products/watches",
-    background: "#f5f5f7",
-    duration: 5000,
-    textColor: "#000000",
-    spanColor: "#FDB101",
-    descColor: "#555555",
-    btnBackground: "#000000",
-    btnTextColor: "#ffffff",
-  },
-  {
-    type: "image",
-    tag: "EXCLUSIVE OFFER",
-    title: (
-      <>
-        PREMIUM TECH.
-        <br />
-        <span>BETTER LIFESTYLE.</span>
-      </>
-    ),
-    description: "Shop premium watches, earbuds, shoes and everyday accessories at great prices.",
-    buttonText: "Explore Deals →",
-    image: Banner,
-    link: "/products/deals",
-    background: "#FDB101",
-    duration: 5000,
-    textColor: "#000000",
-    spanColor: "#ffffff",
-    descColor: "#1a1a1a",
-    btnBackground: "#000000",
-    btnTextColor: "#ffffff",
-  },
-  {
-    type: "image",
-    tag: "DISCOVER MORE",
-    title: (
-      <>
-        PRODUCTS YOU'LL LOVE
-        <br />
-        <span>BEST QUALITY</span>
-      </>
-    ),
-    description: "Upgrade your routine with our top trending tech accessories and everyday gear.",
-    buttonText: "Explore Now →",
-    image: Banner,
-    link: "/products/accessories",
-    background: "#111111",
-    duration: 5000,
-    textColor: "#ffffff",
-    spanColor: "#FDB101",
-    descColor: "#e2e8f0",
-    btnBackground: "#ffffff",
-    btnTextColor: "#0c0c0c",
-  },
-];
+const API_ORIGIN = "http://127.0.0.1:8000";
+
+const getBannerImageUrl = (image) => {
+  if (!image) return Banner;
+
+  // The backend may serialize an ImageField as either a full URL or a
+  // relative /media path. Resolve both forms without duplicating the host.
+  try {
+    return new URL(image, API_ORIGIN).href;
+  } catch {
+    return image;
+  }
+};
+
 
 function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [banners, setBanners] = useState([]);
+  const [loading, setLoading] = useState(true);
   const videoRefs = useRef([]);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-  };
+  useEffect(() => {
+    fetch(`${API_ORIGIN}/api/banners/`)
+      .then(res => res.json())
+      .then(data => {
+        const mappedSlides = data.map((b) => {
+          let titleElement = b.title;
+          const words = b.title.split(" ");
+          if (words.length > 2) {
+            const splitIndex = Math.ceil(words.length / 2);
+            const line1 = words.slice(0, splitIndex).join(" ");
+            const line2 = words.slice(splitIndex).join(" ");
+            titleElement = (
+              <>
+                {line1}
+                <br />
+                <span>{line2}</span>
+              </>
+            );
+          }
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
-  };
+          return {
+            type: b.display_order === 1 ? "video" : "image",
+            tag: b.subtitle || "TRENDING TECH",
+            title: titleElement,
+            description: b.display_order === 1
+              ? "Discover premium watches, smart accessories and everyday essentials designed for your lifestyle."
+              : b.display_order === 3
+              ? "Shop premium watches, earbuds, shoes and everyday accessories at great prices."
+              : "Upgrade your routine with our top trending tech accessories and everyday gear.",
+            buttonText: (b.button_text || "Shop Now") + " →",
+            image: getBannerImageUrl(b.image),
+            video: BannerVideo,
+            link: b.button_link || "/products/watches",
+            background: b.display_order === 1 ? "#0c0c0c" : b.display_order === 3 ? "#FDB101" : b.display_order === 4 ? "#111111" : "#f5f5f7",
+            textColor: b.display_order === 1 || b.display_order === 4 ? "#ffffff" : "#000000",
+            spanColor: b.display_order === 3 ? "#ffffff" : "#FDB101",
+            descColor: b.display_order === 1 || b.display_order === 4 ? "#e2e8f0" : b.display_order === 3 ? "#1a1a1a" : "#555555",
+            btnBackground: b.display_order === 1 || b.display_order === 4 ? "#ffffff" : "#000000",
+            btnTextColor: b.display_order === 1 || b.display_order === 4 ? "#0c0c0c" : "#ffffff",
+            duration: 5000,
+          };
+        });
+        setBanners(mappedSlides);
+      })
+      .catch(err => {
+        console.error("Error fetching banners:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  const activeSlides = banners;
+
+  const nextSlide = useCallback(() => {
+    if (activeSlides.length === 0) return;
+    setCurrentSlide((prev) => (prev === activeSlides.length - 1 ? 0 : prev + 1));
+  }, [activeSlides.length]);
+
+  const prevSlide = useCallback(() => {
+    if (activeSlides.length === 0) return;
+    setCurrentSlide((prev) => (prev === 0 ? activeSlides.length - 1 : prev - 1));
+  }, [activeSlides.length]);
 
   useEffect(() => {
-    const activeSlide = slides[currentSlide];
+    if (activeSlides.length === 0) return;
+    const activeSlide = activeSlides[currentSlide];
 
     // Reset and pause all videos
     videoRefs.current.forEach((video) => {
@@ -133,7 +117,26 @@ function Hero() {
       }, activeSlide.duration || 5000);
       return () => clearTimeout(timer);
     }
-  }, [currentSlide]);
+  }, [currentSlide, activeSlides, nextSlide]);
+
+  if (loading) {
+    return (
+      <>
+        <Offer />
+        <section className="hero">
+          <div className="hero-container d-flex align-items-center justify-content-center" style={{ minHeight: "50vh" }}>
+            <div className="spinner-border text-warning" role="status">
+              <span className="visually-hidden">Loading banners...</span>
+            </div>
+          </div>
+        </section>
+      </>
+    );
+  }
+
+  if (activeSlides.length === 0) {
+    return <Offer />;
+  }
 
   return (
     <>
@@ -159,7 +162,7 @@ function Hero() {
             className="hero-slide-wrapper"
             style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           >
-            {slides.map((slide, index) => (
+            {activeSlides.map((slide, index) => (
               <div
                 className={`hero-slide ${slide.type === "video" ? "video-slide" : ""}`}
                 key={index}
@@ -203,7 +206,7 @@ function Hero() {
 
           {/* Indicator Dots */}
           <div className="slider-dots">
-            {slides.map((_, index) => (
+            {activeSlides.map((_, index) => (
               <button
                 key={index}
                 className={`slider-dot ${index === currentSlide ? "active" : ""}`}

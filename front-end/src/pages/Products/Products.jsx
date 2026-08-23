@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import products from "../../data/products";
-import categories from "../../data/categories";
+import { useData } from "../../context/DataContext";
 import ProductCard from "../../components/Product/ProductCard";
 import "./Products.css";
 
@@ -11,6 +10,7 @@ export default function Products() {
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const { category, subcategory } = useParams();
+  const { categories, products, loading } = useData();
 
   const slug = category || "";
   const subSlug = subcategory || "";
@@ -24,8 +24,8 @@ export default function Products() {
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const activeCategory = categories.find((c) => c.slug === slug);
-  const activeSubcategory = activeCategory?.subcategories?.find((s) => s.slug === subSlug);
+  const activeCategory = useMemo(() => categories.find((c) => c.slug === slug), [categories, slug]);
+  const activeSubcategory = useMemo(() => activeCategory?.subcategories?.find((s) => s.slug === subSlug), [activeCategory, subSlug]);
 
   useEffect(() => {
     setQuery(new URLSearchParams(search).get("search") || "");
@@ -74,6 +74,16 @@ export default function Products() {
 
     return list.sort(sorters[sort]);
   }, [slug, subSlug, activeCategory, query, maxPrice, minRating, availability, minDiscount, sort]);
+
+  if (loading) {
+    return (
+      <div className="container text-center py-5" style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="spinner-border text-warning" role="status">
+          <span className="visually-hidden">Loading products...</span>
+        </div>
+      </div>
+    );
+  }
 
   const reset = () => {
     setQuery("");
