@@ -30,10 +30,10 @@ export default function ProfilePage() {
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Redirect to login if user session is not found
+  // Redirect to home if user session is not found
   useEffect(() => {
     if (!user) {
-      navigate("/login");
+      navigate("/");
     }
   }, [user, navigate]);
 

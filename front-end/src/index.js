@@ -6,6 +6,7 @@ import { WishlistProvider } from "./context/WishlistContext";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
+import { ModalProvider } from "./context/ModalContext";
 
 import { DataProvider } from "./context/DataContext";
 
@@ -19,13 +20,15 @@ root.render(
     <React.StrictMode>
         <ToastProvider>
             <AuthProvider>
-                <DataProvider>
-                    <WishlistProvider>
-                        <CartProvider>
-                            <BrowserRouter><App /></BrowserRouter>
-                        </CartProvider>
-                    </WishlistProvider>
-                </DataProvider>
+                <WishlistProvider>
+                    <CartProvider>
+                        <BrowserRouter>
+                            <ModalProvider>
+                                <App />
+                            </ModalProvider>
+                        </BrowserRouter>
+                    </CartProvider>
+                </WishlistProvider>
             </AuthProvider>
         </ToastProvider>
     </React.StrictMode>

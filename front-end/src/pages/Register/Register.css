@@ -1,0 +1,102 @@
+/* ============================================================
+   Register.css
+   Responsive styles for Create Account / Register Page.
+   ============================================================ */
+
+.register-section {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 60px 20px;
+  background-color: #fafbfc;
+  box-sizing: border-box;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 620px;
+  padding: 48px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.register-title,
+.register-card h1 {
+  font-size: 36px;
+  font-weight: 800;
+  color: #111111;
+  margin: 0 0 28px;
+  letter-spacing: -0.5px;
+  text-align: center;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.register-description {
+  font-size: 14px;
+  color: #555555;
+  line-height: 1.6;
+  text-align: center;
+  margin: 6px 0 10px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+/* Ensure all inputs and buttons on register page follow box-sizing */
+.register-form .form-control,
+.register-form .auth-button {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   RESPONSIVE MEDIA QUERIES
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .register-section {
+    padding: 35px 15px;
+  }
+
+  .register-card {
+    max-width: 100%;
+    padding: 30px 20px;
+  }
+
+  .register-title,
+  .register-card h1 {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-section {
+    padding: 20px 10px;
+  }
+
+  .register-card {
+    padding: 25px 15px;
+  }
+
+  .register-title,
+  .register-card h1 {
+    font-size: 26px;
+  }
+}

@@ -1,0 +1,128 @@
+/* ============================================================
+   AccountDropdown.css
+   Styles for the logged-in user profile dropdown.
+   ============================================================ */
+
+.account-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: -10px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+  width: 220px;
+  z-index: 1050;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  animation: dropdownFadeIn 0.18s ease forwards;
+  box-sizing: border-box;
+}
+
+/* Triangle indicator on top */
+.account-dropdown-menu::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  right: 25px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent #ffffff transparent;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.account-dropdown-header {
+  padding: 6px 18px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.account-greeting {
+  font-size: 14px;
+  font-weight: 800;
+  color: #111111;
+}
+
+.account-email {
+  font-size: 11px;
+  color: #777777;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-dropdown-divider {
+  margin: 4px 0;
+  border: none;
+  border-top: 1px solid #eeeeee;
+}
+
+.account-dropdown-links {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c3e50;
+  text-decoration: none;
+  transition: background-color 0.18s, color 0.18s, padding-left 0.18s;
+  cursor: pointer;
+}
+
+.account-dropdown-item:hover {
+  background-color: #FDB101;
+  color: #111111;
+  padding-left: 22px;
+}
+
+.account-item-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.account-dropdown-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 18px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: #d9383a;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.18s, color 0.18s;
+  box-sizing: border-box;
+}
+
+.account-dropdown-logout-btn:hover {
+  background-color: #fff1f2;
+  color: #b91c1c;
+}
+
+@media (max-width: 768px) {
+  .account-dropdown-menu {
+    right: -15px;
+    width: 200px;
+  }
+}

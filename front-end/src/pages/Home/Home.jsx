@@ -1,25 +1,29 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Banner from "../../components/Banner/Hero";
 import Feature from "../../components/Features/Feature";
 import Category from "../../components/category/Category";
 import SpecialOffer from "../../components/SpecialOffer/SpecialOffer";
 import Reviews from "../../components/Reviews/Reviews";
 import ProductShelf from "../../components/Product/ProductShelf";
-import { useData } from "../../context/DataContext";
+import products from "../../data/products";
+import { useModal } from "../../context/ModalContext";
 
 function Home() {
-  const { products, loading } = useData();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { openLogin } = useModal();
 
-  if (loading) {
-    return (
-      <div className="container text-center py-5" style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div className="spinner-border text-warning" role="status">
-          <span className="visually-hidden">Loading products...</span>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (location.state?.openProfile || location.state?.openLogin) {
+      openLogin();
 
+      navigate("/", {
+        replace: true,
+        state: {},
+      });
+    }
+  }, [location.state, navigate, openLogin]);
   // 1. Get all in-stock products
   const inStockProducts = products.filter((p) => p.stock);
 

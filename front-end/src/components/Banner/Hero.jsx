@@ -5,20 +5,80 @@ import Banner from "../../assets/images/banner2.png";
 import BannerVideo from "../../assets/Video/banner_video.mp4";
 import Offer from "./Offer";
 
-const API_ORIGIN = "http://127.0.0.1:8000";
-
-const getBannerImageUrl = (image) => {
-  if (!image) return Banner;
-
-  // The backend may serialize an ImageField as either a full URL or a
-  // relative /media path. Resolve both forms without duplicating the host.
-  try {
-    return new URL(image, API_ORIGIN).href;
-  } catch {
-    return image;
-  }
-};
-
+const slides = [
+  {
+    type: "video",
+    video: BannerVideo,
+    link: "/products/watches",
+    background: "#0c0c0c",
+  },
+  {
+    type: "image",
+    tag: "TRENDING TECH",
+    title: (
+      <>
+        UPGRADE YOUR STYLE
+        <br />
+        <span>SHOP THE LATEST</span>
+      </>
+    ),
+    description: "Discover premium watches, smart accessories and everyday essentials designed for your lifestyle.",
+    buttonText: "Shop Now →",
+    image: Banner,
+    link: "/products/watches",
+    background: "#f5f5f7",
+    duration: 5000,
+    textColor: "#000000",
+    spanColor: "#FDB101",
+    descColor: "#555555",
+    btnBackground: "#000000",
+    btnTextColor: "#ffffff",
+  },
+  {
+    type: "image",
+    tag: "EXCLUSIVE OFFER",
+    title: (
+      <>
+        PREMIUM TECH.
+        <br />
+        <span>BETTER LIFESTYLE.</span>
+      </>
+    ),
+    description: "Shop premium watches, earbuds, shoes and everyday accessories at great prices.",
+    buttonText: "Explore Deals →",
+    image: Banner,
+    link: "/products/deals",
+    background: "#FDB101",
+    duration: 5000,
+    textColor: "#000000",
+    spanColor: "#ffffff",
+    descColor: "#1a1a1a",
+    btnBackground: "#000000",
+    btnTextColor: "#ffffff",
+  },
+  {
+    type: "image",
+    tag: "DISCOVER MORE",
+    title: (
+      <>
+        PRODUCTS YOU'LL LOVE
+        <br />
+        <span>BEST QUALITY</span>
+      </>
+    ),
+    description: "Upgrade your routine with our top trending tech accessories and everyday gear.",
+    buttonText: "Explore Now →",
+    image: Banner,
+    link: "/products/accessories",
+    background: "#111111",
+    duration: 5000,
+    textColor: "#ffffff",
+    spanColor: "#FDB101",
+    descColor: "#e2e8f0",
+    btnBackground: "#ffffff",
+    btnTextColor: "#0c0c0c",
+  },
+];
 
 function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -176,14 +236,21 @@ function Hero() {
                 }}
               >
                 <div className="hero-slide-container">
-                  <div className="hero-content-left">
-                    <span className="hero-tag">{slide.tag}</span>
-                    <h1>{slide.title}</h1>
-                    <p>{slide.description}</p>
-                    <Link to={slide.link || "/products/watches"} className="shop-btn" style={{ textDecoration: "none" }}>
-                      {slide.buttonText}
-                    </Link>
-                  </div>
+                  {/* Left text content rendered only for non-video slides */}
+                  {slide.type !== "video" && (
+                    <div className="hero-content-left">
+                      {slide.tag && <span className="hero-tag">{slide.tag}</span>}
+                      {slide.title && <h1>{slide.title}</h1>}
+                      {slide.description && <p>{slide.description}</p>}
+                      {slide.buttonText && (
+                        <Link to={slide.link || "/products/watches"} className="shop-btn" style={{ textDecoration: "none" }}>
+                          {slide.buttonText}
+                        </Link>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Media container */}
                   <div className="hero-media-right">
                     {slide.type === "video" ? (
                       <video

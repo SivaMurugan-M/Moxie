@@ -6,13 +6,14 @@ import Products from "./pages/Products/Products";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
 import Wishlist from "./pages/Wishlist/Wishlist";
 import Cart from "./pages/Cart/Cart";
-import Login from "./pages/Login/Login";
 import Footer from "./components/Footer/Footer";
 import Register from "./pages/Register/Register";
 import Checkout from "./pages/Checkout/Checkout";
 import Deals from "./pages/Deals/Deals";
 import BrandIntro from "./components/BrandIntro/BrandIntro";
 import ProfilePage from "./pages/Profile/ProfilePage";
+import SignInModal from "./components/auth/SignInModal";
+import { useModal } from "./context/ModalContext";
 
 const ProductsSelector = () => {
   const { category } = useParams();
@@ -48,6 +49,7 @@ const AdminRedirect = () => {
 function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const { pathname } = useLocation();
+  const { isLoginOpen, closeLogin } = useModal();
 
   // Scroll to top on route change
   useEffect(() => {
@@ -68,7 +70,6 @@ function App() {
         <Route path="/products/:category/:subcategory" element={<Products />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/cart" element={<Cart />} />
-        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/deals" element={<Deals />} />
@@ -78,6 +79,9 @@ function App() {
         <Route path="*" element={<div className="empty-state"><div className="empty-icon">404</div><h1>Page not found</h1><Link to="/" className="primary-btn">Back to home</Link></div>} />
       </Routes>
       <Footer />
+
+      {/* Sign In Modal — only rendered when on Home page and opened */}
+      {pathname === "/" && isLoginOpen && <SignInModal onClose={closeLogin} />}
     </BrandIntro>
   );
 }
