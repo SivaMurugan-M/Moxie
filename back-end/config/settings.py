@@ -77,7 +77,7 @@ DEBUG = DEBUG_VALUE.lower() in (
 raw_allowed_hosts = (
     os.environ.get("DJANGO_ALLOWED_HOSTS")
     or os.environ.get("ALLOWED_HOSTS")
-    or "localhost,127.0.0.1"
+    or "moxie-backend-9bar.onrender.com,.onrender.com,localhost,127.0.0.1,*"
 )
 
 ALLOWED_HOSTS = [
@@ -85,6 +85,11 @@ ALLOWED_HOSTS = [
     for host in raw_allowed_hosts.split(",")
     if host.strip()
 ]
+
+for default_host in ["moxie-backend-9bar.onrender.com", ".onrender.com", "*", "localhost", "127.0.0.1"]:
+    if default_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(default_host)
+
 
 
 # ============================================================
@@ -351,41 +356,34 @@ STORAGES = {
 # CORS
 # ============================================================
 
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = (
+    os.environ.get("CORS_ALLOW_ALL_ORIGINS", "True").lower() in ("true", "1", "yes", "on")
+)
 
 raw_cors_origins = os.environ.get(
     "CORS_ALLOWED_ORIGINS",
-    "http://localhost:3000,http://127.0.0.1:3000"
+    "https://moxie-dev.netlify.app,http://localhost:3000,http://127.0.0.1:3000"
 )
 
 CORS_ALLOWED_ORIGINS = [
-
     origin.strip().rstrip("/")
-
     for origin in raw_cors_origins.split(",")
-
     if origin.strip()
 ]
 
+if "https://moxie-dev.netlify.app" not in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append("https://moxie-dev.netlify.app")
+
 
 CORS_ALLOW_HEADERS = [
-
     "accept",
-
     "accept-encoding",
-
     "authorization",
-
     "content-type",
-
     "dnt",
-
     "origin",
-
     "user-agent",
-
     "x-csrftoken",
-
     "x-requested-with",
 ]
 
@@ -396,17 +394,20 @@ CORS_ALLOW_HEADERS = [
 
 raw_csrf_trusted = os.environ.get(
     "CSRF_TRUSTED_ORIGINS",
-    "http://localhost:3000,http://127.0.0.1:3000"
+    "https://moxie-dev.netlify.app,https://moxie-backend-9bar.onrender.com,http://localhost:3000,http://127.0.0.1:3000"
 )
 
 CSRF_TRUSTED_ORIGINS = [
-
     origin.strip().rstrip("/")
-
     for origin in raw_csrf_trusted.split(",")
-
     if origin.strip()
 ]
+
+if "https://moxie-dev.netlify.app" not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append("https://moxie-dev.netlify.app")
+if "https://moxie-backend-9bar.onrender.com" not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append("https://moxie-backend-9bar.onrender.com")
+
 
 
 # ============================================================
