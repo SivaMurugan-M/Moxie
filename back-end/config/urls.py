@@ -7,8 +7,10 @@ The `urlpatterns` list routes URLs to views. For more information please see:
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum
+
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from datetime import timedelta
@@ -109,7 +111,9 @@ urlpatterns = [
     path('admin/logout/', custom_logout, name='custom_logout'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(

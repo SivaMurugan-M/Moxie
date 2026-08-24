@@ -4,17 +4,11 @@ import "./Hero.css";
 import Banner from "../../assets/images/banner2.png";
 import BannerVideo from "../../assets/Video/banner_video.mp4";
 import Offer from "./Offer";
-
-const API_ORIGIN = "http://127.0.0.1:8000";
+import { API_BASE_URL, getImageUrl } from "../../api/apiConfig";
 
 const getBannerImageUrl = (image) => {
   if (!image) return Banner;
-
-  try {
-    return new URL(image, API_ORIGIN).href;
-  } catch {
-    return image;
-  }
+  return getImageUrl(image) || Banner;
 };
 const slides = [
   {
@@ -98,7 +92,7 @@ function Hero() {
   const videoRefs = useRef([]);
 
   useEffect(() => {
-    fetch(`${API_ORIGIN}/api/banners/`)
+    fetch(`${API_BASE_URL}/banners/`)
       .then(res => res.json())
       .then(data => {
         const mappedSlides = data.map((b) => {
@@ -148,6 +142,7 @@ function Hero() {
         setLoading(false);
       });
   }, []);
+
 
   const activeSlides = banners.length > 0 ? banners : slides;
 
