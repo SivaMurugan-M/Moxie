@@ -366,8 +366,11 @@ raw_cors_origins = os.environ.get(
 )
 
 CORS_ALLOWED_ORIGINS = [
+
     origin.strip().rstrip("/")
+
     for origin in raw_cors_origins.split(",")
+
     if origin.strip()
 ]
 
@@ -376,14 +379,23 @@ if "https://moxie-dev.netlify.app" not in CORS_ALLOWED_ORIGINS:
 
 
 CORS_ALLOW_HEADERS = [
+
     "accept",
+
     "accept-encoding",
+
     "authorization",
+
     "content-type",
+
     "dnt",
+
     "origin",
+
     "user-agent",
+
     "x-csrftoken",
+
     "x-requested-with",
 ]
 
@@ -398,8 +410,11 @@ raw_csrf_trusted = os.environ.get(
 )
 
 CSRF_TRUSTED_ORIGINS = [
+
     origin.strip().rstrip("/")
+
     for origin in raw_csrf_trusted.split(",")
+
     if origin.strip()
 ]
 
@@ -407,7 +422,6 @@ if "https://moxie-dev.netlify.app" not in CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS.append("https://moxie-dev.netlify.app")
 if "https://moxie-backend-9bar.onrender.com" not in CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS.append("https://moxie-backend-9bar.onrender.com")
-
 
 
 # ============================================================
