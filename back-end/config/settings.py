@@ -4,7 +4,6 @@ Django settings for Moxie project.
 
 from pathlib import Path
 import os
-
 import dj_database_url
 
 
@@ -16,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # ============================================================
-# LOAD .ENV FILE FOR LOCAL DEVELOPMENT
+# LOAD .ENV FILE
 # ============================================================
 
 env_file = BASE_DIR / ".env"
@@ -40,7 +39,7 @@ if env_file.exists():
 
 
 # ============================================================
-# SECURITY & CORE CONFIGURATION
+# SECURITY
 # ============================================================
 
 SECRET_KEY = (
@@ -54,13 +53,13 @@ if not SECRET_KEY:
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # DEBUG
-# ------------------------------------------------------------
+# ============================================================
 
 DEBUG_VALUE = os.environ.get(
     "DJANGO_DEBUG",
-    os.environ.get("DEBUG", "True")
+    os.environ.get("DEBUG", "False")
 )
 
 DEBUG = DEBUG_VALUE.lower() in (
@@ -71,14 +70,14 @@ DEBUG = DEBUG_VALUE.lower() in (
 )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # ALLOWED HOSTS
-# ------------------------------------------------------------
+# ============================================================
 
 raw_allowed_hosts = (
     os.environ.get("DJANGO_ALLOWED_HOSTS")
     or os.environ.get("ALLOWED_HOSTS")
-    or "*"
+    or "localhost,127.0.0.1"
 )
 
 ALLOWED_HOSTS = [
@@ -86,13 +85,6 @@ ALLOWED_HOSTS = [
     for host in raw_allowed_hosts.split(",")
     if host.strip()
 ]
-
-# Always ensure Render subdomains and wildcards are allowed in production
-for default_host in [".onrender.com", "*", "localhost", "127.0.0.1"]:
-    if default_host not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(default_host)
-
-
 
 
 # ============================================================
@@ -110,11 +102,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
 
-    # Third-party
+    # Third Party
     "rest_framework",
     "corsheaders",
 
-    # Moxie apps
+    # Moxie Apps
     "categories",
     "products",
     "banners",
@@ -127,7 +119,6 @@ INSTALLED_APPS = [
 # ============================================================
 
 MIDDLEWARE = [
-
     "corsheaders.middleware.CorsMiddleware",
 
     "django.middleware.security.SecurityMiddleware",
@@ -162,10 +153,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 # ============================================================
 
 TEMPLATES = [
-
     {
-        "BACKEND":
-            "django.template.backends.django.DjangoTemplates",
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
 
         "DIRS": [
             BASE_DIR / "templates"
@@ -174,7 +163,6 @@ TEMPLATES = [
         "APP_DIRS": True,
 
         "OPTIONS": {
-
             "context_processors": [
 
                 "django.template.context_processors.request",
@@ -182,7 +170,6 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
 
                 "django.contrib.messages.context_processors.messages",
-
             ],
         },
     },
@@ -193,17 +180,28 @@ TEMPLATES = [
 # DATABASE
 # ============================================================
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL",
+    ""
+).strip()
 
-DB_ENGINE = os.environ.get("DB_ENGINE", "")
-DB_NAME = os.environ.get("DB_NAME", "")
+DB_ENGINE = os.environ.get(
+    "DB_ENGINE",
+    ""
+).strip()
+
+DB_NAME = os.environ.get(
+    "DB_NAME",
+    ""
+).strip()
 
 
 # ------------------------------------------------------------
-# Render PostgreSQL
+# Render PostgreSQL / DATABASE_URL
 # ------------------------------------------------------------
 
-if DATABASE_URL:
+if DATABASE_URL and "://" in DATABASE_URL:
+
     DATABASES = {
         "default": dj_database_url.config(
             default=DATABASE_URL,
@@ -213,17 +211,14 @@ if DATABASE_URL:
     }
 
 
-
 # ------------------------------------------------------------
-# Manual PostgreSQL configuration
+# Manual PostgreSQL
 # ------------------------------------------------------------
 
 elif DB_ENGINE and DB_NAME:
 
     DATABASES = {
-
         "default": {
-
             "ENGINE": DB_ENGINE,
 
             "NAME": DB_NAME,
@@ -247,9 +242,7 @@ elif DB_ENGINE and DB_NAME:
                 "DB_PORT",
                 "5432"
             ),
-
         }
-
     }
 
 
@@ -260,17 +253,11 @@ elif DB_ENGINE and DB_NAME:
 else:
 
     DATABASES = {
-
         "default": {
+            "ENGINE": "django.db.backends.sqlite3",
 
-            "ENGINE":
-                "django.db.backends.sqlite3",
-
-            "NAME":
-                BASE_DIR / "db.sqlite3",
-
+            "NAME": BASE_DIR / "db.sqlite3",
         }
-
     }
 
 
@@ -299,7 +286,6 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME":
             "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
-
 ]
 
 
@@ -309,7 +295,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"
 
 USE_I18N = True
 
@@ -323,7 +309,6 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
 
 static_dir = BASE_DIR / "static"
 
@@ -350,19 +335,14 @@ MEDIA_ROOT = BASE_DIR / "media"
 STORAGES = {
 
     "default": {
-
         "BACKEND":
             "django.core.files.storage.FileSystemStorage",
-
     },
 
     "staticfiles": {
-
         "BACKEND":
             "whitenoise.storage.CompressedManifestStaticFilesStorage",
-
     },
-
 }
 
 
@@ -370,13 +350,7 @@ STORAGES = {
 # CORS
 # ============================================================
 
-CORS_ALLOW_ALL_ORIGINS = (
-    os.environ.get(
-        "CORS_ALLOW_ALL_ORIGINS",
-        "True"
-    ).lower()
-    in ("true", "1", "yes", "on")
-)
+CORS_ALLOW_ALL_ORIGINS = False
 
 raw_cors_origins = os.environ.get(
     "CORS_ALLOWED_ORIGINS",
@@ -384,20 +358,33 @@ raw_cors_origins = os.environ.get(
 )
 
 CORS_ALLOWED_ORIGINS = [
+
     origin.strip().rstrip("/")
+
     for origin in raw_cors_origins.split(",")
+
     if origin.strip()
 ]
 
+
 CORS_ALLOW_HEADERS = [
+
     "accept",
+
     "accept-encoding",
+
     "authorization",
+
     "content-type",
+
     "dnt",
+
     "origin",
+
     "user-agent",
+
     "x-csrftoken",
+
     "x-requested-with",
 ]
 
@@ -412,11 +399,13 @@ raw_csrf_trusted = os.environ.get(
 )
 
 CSRF_TRUSTED_ORIGINS = [
+
     origin.strip().rstrip("/")
+
     for origin in raw_csrf_trusted.split(",")
+
     if origin.strip()
 ]
-
 
 
 # ============================================================
@@ -424,11 +413,13 @@ CSRF_TRUSTED_ORIGINS = [
 # ============================================================
 
 RAZORPAY_KEY_ID = os.environ.get(
-    "RAZORPAY_KEY_ID"
+    "RAZORPAY_KEY_ID",
+    ""
 )
 
 RAZORPAY_KEY_SECRET = os.environ.get(
-    "RAZORPAY_KEY_SECRET"
+    "RAZORPAY_KEY_SECRET",
+    ""
 )
 
 RAZORPAY_WEBHOOK_SECRET = os.environ.get(
@@ -438,12 +429,27 @@ RAZORPAY_WEBHOOK_SECRET = os.environ.get(
 
 
 # ============================================================
+# DJANGO REST FRAMEWORK
+# ============================================================
+
+REST_FRAMEWORK = {
+
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+}
+
+
+# ============================================================
 # PRODUCTION SECURITY
 # ============================================================
 
 if not DEBUG:
 
-    # HTTPS
+    # --------------------------------------------------------
+    # HTTPS REDIRECT
+    # --------------------------------------------------------
+
     SECURE_SSL_REDIRECT = (
         os.environ.get(
             "SECURE_SSL_REDIRECT",
@@ -453,7 +459,10 @@ if not DEBUG:
     )
 
 
+    # --------------------------------------------------------
     # HSTS
+    # --------------------------------------------------------
+
     SECURE_HSTS_SECONDS = int(
         os.environ.get(
             "SECURE_HSTS_SECONDS",
@@ -466,7 +475,10 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
 
 
-    # Secure cookies
+    # --------------------------------------------------------
+    # SECURE COOKIES
+    # --------------------------------------------------------
+
     SESSION_COOKIE_SECURE = (
         os.environ.get(
             "SESSION_COOKIE_SECURE",
@@ -474,7 +486,6 @@ if not DEBUG:
         ).lower()
         in ("true", "1", "yes", "on")
     )
-
 
     CSRF_COOKIE_SECURE = (
         os.environ.get(
@@ -485,13 +496,19 @@ if not DEBUG:
     )
 
 
-    # Browser security
+    # --------------------------------------------------------
+    # BROWSER SECURITY
+    # --------------------------------------------------------
+
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
     X_FRAME_OPTIONS = "DENY"
 
 
-    # Render HTTPS proxy
+    # --------------------------------------------------------
+    # RENDER HTTPS PROXY
+    # --------------------------------------------------------
+
     SECURE_PROXY_SSL_HEADER = (
         "HTTP_X_FORWARDED_PROTO",
         "https",

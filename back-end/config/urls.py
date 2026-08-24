@@ -9,9 +9,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path, re_path
 from django.views.static import serve
-from django.urls import include, path, re_path
-from django.views.static import serve
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum
+
 
 from django.db.models.functions import Coalesce
 from django.utils import timezone
