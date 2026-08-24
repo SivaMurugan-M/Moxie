@@ -1,0 +1,7 @@
+# Netlify SPA & Admin Portal Redirect Configuration
+
+/admin           https://moxie-backend-9bar.onrender.com/admin/ 302!
+/admin/*         https://moxie-backend-9bar.onrender.com/admin/:splat 302!
+/admin/dashboard https://moxie-backend-9bar.onrender.com/admin/ 302!
+
+/* /index.html 200
