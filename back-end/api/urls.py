@@ -5,6 +5,7 @@ from .views import (
     CategoryListView,
     ProductListView,
     ReviewListView,
+    HealthCheckView,
     CreateRazorpayOrderView,
     VerifyRazorpayPaymentView,
     RazorpayWebhookView,
@@ -12,6 +13,11 @@ from .views import (
 
 
 urlpatterns = [
+    path(
+        'health/',
+        HealthCheckView.as_view(),
+        name='health-check'
+    ),
     path(
         'categories/',
         CategoryListView.as_view(),
