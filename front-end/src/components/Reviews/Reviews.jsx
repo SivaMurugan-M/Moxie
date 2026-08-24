@@ -1,24 +1,14 @@
 import React, { useState, useEffect } from "react";
 import ReviewCard from "./ReviewCard";
+import { API_BASE_URL, getImageUrl } from "../../api/apiConfig";
 import "./Reviews.css";
-
-const API_ORIGIN = "http://127.0.0.1:8000";
-
-const getReviewImageUrl = (image) => {
-  if (!image) return null;
-  try {
-    return new URL(image, API_ORIGIN).href;
-  } catch {
-    return image;
-  }
-};
 
 function Reviews() {
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_ORIGIN}/api/reviews/`)
+    fetch(`${API_BASE_URL}/reviews/`)
       .then((res) => {
         if (!res.ok) {
           throw new Error("Failed to fetch reviews");
@@ -29,7 +19,7 @@ function Reviews() {
         const mappedData = data.map((item) => ({
           ...item,
           rating: Number(item.rating),
-          image: getReviewImageUrl(item.image)
+          image: getImageUrl(item.image)
         }));
         setTestimonials(mappedData);
       })
@@ -40,6 +30,7 @@ function Reviews() {
         setLoading(false);
       });
   }, []);
+
 
   if (loading) {
     return (

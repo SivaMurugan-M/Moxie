@@ -78,7 +78,7 @@ DEBUG = DEBUG_VALUE.lower() in (
 raw_allowed_hosts = (
     os.environ.get("DJANGO_ALLOWED_HOSTS")
     or os.environ.get("ALLOWED_HOSTS")
-    or "localhost,127.0.0.1"
+    or "*"
 )
 
 ALLOWED_HOSTS = [
@@ -86,6 +86,13 @@ ALLOWED_HOSTS = [
     for host in raw_allowed_hosts.split(",")
     if host.strip()
 ]
+
+# Always ensure Render subdomains and wildcards are allowed in production
+for default_host in [".onrender.com", "*", "localhost", "127.0.0.1"]:
+    if default_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(default_host)
+
+
 
 
 # ============================================================
@@ -368,11 +375,10 @@ STORAGES = {
 CORS_ALLOW_ALL_ORIGINS = (
     os.environ.get(
         "CORS_ALLOW_ALL_ORIGINS",
-        "False"
+        "True"
     ).lower()
     in ("true", "1", "yes", "on")
 )
-
 
 raw_cors_origins = os.environ.get(
     "CORS_ALLOWED_ORIGINS",
@@ -380,13 +386,21 @@ raw_cors_origins = os.environ.get(
 )
 
 CORS_ALLOWED_ORIGINS = [
-
-    origin.strip()
-
+    origin.strip().rstrip("/")
     for origin in raw_cors_origins.split(",")
-
     if origin.strip()
+]
 
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]
 
 
@@ -400,14 +414,11 @@ raw_csrf_trusted = os.environ.get(
 )
 
 CSRF_TRUSTED_ORIGINS = [
-
-    origin.strip()
-
+    origin.strip().rstrip("/")
     for origin in raw_csrf_trusted.split(",")
-
     if origin.strip()
-
 ]
+
 
 
 # ============================================================

@@ -14,6 +14,7 @@ import BrandIntro from "./components/BrandIntro/BrandIntro";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import SignInModal from "./components/auth/SignInModal";
 import { useModal } from "./context/ModalContext";
+import { API_ORIGIN } from "./api/apiConfig";
 
 const ProductsSelector = () => {
   const { category } = useParams();
@@ -23,7 +24,7 @@ const ProductsSelector = () => {
 
 const AdminRedirect = () => {
   useEffect(() => {
-    window.location.href = "http://127.0.0.1:8000/admin/";
+    window.location.href = `${API_ORIGIN}/admin/`;
   }, []);
   return (
     <div style={{

@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
+import { API_BASE_URL } from "../../api/apiConfig";
 import "./Checkout.css";
 
 export default function Checkout() {
@@ -87,7 +88,7 @@ export default function Checkout() {
           quantity: item.quantity
         }));
 
-        const createOrderRes = await fetch("http://127.0.0.1:8000/api/payment/order/create/", {
+        const createOrderRes = await fetch(`${API_BASE_URL}/payment/order/create/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -115,7 +116,7 @@ export default function Checkout() {
           handler: async (response) => {
             setLoading(true);
             try {
-              const verifyRes = await fetch("http://127.0.0.1:8000/api/payment/verify/", {
+              const verifyRes = await fetch(`${API_BASE_URL}/payment/verify/`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json"
