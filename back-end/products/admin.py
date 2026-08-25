@@ -6,6 +6,8 @@ from .models import Product, ProductImage, Review
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 1
+    max_num = 3
+
 
 
 @admin.register(Product)
