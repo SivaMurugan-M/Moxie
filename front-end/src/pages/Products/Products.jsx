@@ -6,14 +6,36 @@ import "./Products.css";
 
 const PAGE_SIZE = 9;
 
+const ALIAS_MAP = {
+  shoes: { categorySlug: "footwear", subcategoryKeywords: ["shoe", "shoes"], title: "Shoes" },
+  sliders: { categorySlug: "footwear", subcategoryKeywords: ["slider", "sliders", "slipper", "slippers"], title: "Sliders" },
+  "air-buds": { categorySlug: "gadgets", subcategoryKeywords: ["airpod", "airpods", "bud", "buds", "earbud", "earbuds"], title: "Air Buds" },
+  airbuds: { categorySlug: "gadgets", subcategoryKeywords: ["airpod", "airpods", "bud", "buds", "earbud", "earbuds"], title: "Air Buds" },
+  caps: { categorySlug: "fashion-bags", subcategoryKeywords: ["cap", "caps"], title: "Caps" },
+};
+
 export default function Products() {
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const { category, subcategory } = useParams();
   const { categories, products, loading } = useData();
 
-  const slug = category || "";
-  const subSlug = subcategory || "";
+  const slug = (category || "").toLowerCase();
+  const subSlug = (subcategory || "").toLowerCase();
+
+  const alias = ALIAS_MAP[slug];
+
+  const activeCategory = useMemo(() => {
+    if (alias) {
+      return categories.find((c) => c.slug === alias.categorySlug);
+    }
+    return categories.find((c) => c.slug === slug);
+  }, [categories, slug, alias]);
+
+  const activeSubcategory = useMemo(() => {
+    if (!activeCategory || !subSlug) return null;
+    return activeCategory.subcategories?.find((s) => s.slug === subSlug);
+  }, [activeCategory, subSlug]);
 
   const [query, setQuery] = useState(new URLSearchParams(search).get("search") || "");
   const [maxPrice, setMaxPrice] = useState(15000);
@@ -23,9 +45,6 @@ export default function Products() {
   const [sort, setSort] = useState(new URLSearchParams(search).get("sort") || "recommended");
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [filtersOpen, setFiltersOpen] = useState(false);
-
-  const activeCategory = useMemo(() => categories.find((c) => c.slug === slug), [categories, slug]);
-  const activeSubcategory = useMemo(() => activeCategory?.subcategories?.find((s) => s.slug === subSlug), [activeCategory, subSlug]);
 
   useEffect(() => {
     setQuery(new URLSearchParams(search).get("search") || "");
@@ -37,18 +56,38 @@ export default function Products() {
     let list = [...products];
 
     if (slug === "deals") {
-      list = list.filter((p) => p.discount >= 30);
-    } else if (activeCategory) {
-      list = list.filter((p) => p.category === slug);
-      if (subSlug) {
-        list = list.filter((p) => p.subcategory === subSlug);
+      list = list.filter((p) => p.discount >= 20 || (p.oldPrice && p.oldPrice > p.price));
+    } else if (alias) {
+      const targetCat = alias.categorySlug;
+      const keywords = alias.subcategoryKeywords;
+      list = list.filter((p) => {
+        const catMatch = (p.category || "").toLowerCase() === targetCat;
+        const subMatch = keywords.some((k) =>
+          (p.subcategory || "").toLowerCase().includes(k) ||
+          (p.name || "").toLowerCase().includes(k)
+        );
+        return catMatch && subMatch;
+      });
+    } else if (slug) {
+      if (activeCategory) {
+        list = list.filter((p) => (p.category || "").toLowerCase() === slug);
+        if (subSlug) {
+          list = list.filter((p) => (p.subcategory || "").toLowerCase().includes(subSlug));
+        }
+      } else {
+        // Fallback for custom or direct subcategory slugs
+        list = list.filter((p) =>
+          (p.category || "").toLowerCase() === slug ||
+          (p.subcategory || "").toLowerCase().includes(slug) ||
+          (p.name || "").toLowerCase().includes(slug)
+        );
       }
     }
 
     const term = query.trim().toLowerCase();
     if (term) {
       list = list.filter(
-        (p) => `${p.name} ${p.category} ${p.subcategory || ""} ${p.keywords}`.toLowerCase().includes(term)
+        (p) => `${p.name} ${p.category} ${p.subcategory || ""} ${p.keywords || ""}`.toLowerCase().includes(term)
       );
     }
 
@@ -72,8 +111,8 @@ export default function Products() {
       recommended: (a, b) => b.rating * b.reviewCount - a.rating * a.reviewCount,
     };
 
-    return list.sort(sorters[sort]);
-  }, [products, slug, subSlug, activeCategory, query, maxPrice, minRating, availability, minDiscount, sort]);
+    return list.sort(sorters[sort] || sorters.recommended);
+  }, [products, slug, subSlug, alias, activeCategory, query, maxPrice, minRating, availability, minDiscount, sort]);
 
   if (loading) {
     return (
@@ -97,9 +136,19 @@ export default function Products() {
 
   const headingTitle = slug === "deals"
     ? "Hot Deals"
-    : activeSubcategory
-      ? `${activeCategory?.name} - ${activeSubcategory?.name}`
-      : activeCategory?.name || "All Products";
+    : alias
+      ? alias.title
+      : activeSubcategory
+        ? `${activeCategory?.name} - ${activeSubcategory?.name}`
+        : activeCategory?.name || (slug ? slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ") : "All Products");
+
+  const selectedCategoryValue = slug === "deals"
+    ? "deals"
+    : alias
+      ? alias.categorySlug
+      : activeCategory
+        ? activeCategory.slug
+        : slug || "all";
 
   const filters = (
     <div className="filter-panel">
@@ -117,7 +166,7 @@ export default function Products() {
 
       <label>Category</label>
       <select
-        value={slug || "all"}
+        value={selectedCategoryValue}
         onChange={(e) => navigate(e.target.value === "all" ? "/products" : `/products/${e.target.value}`)}
       >
         <option value="all">All categories</option>

@@ -5,7 +5,9 @@ import Banner from "../../assets/images/banner2.png";
 import BannerVideo from "../../assets/Video/banner_video.mp4";
 import Offer from "./Offer";
 
-const API_ORIGIN = "http://127.0.0.1:8000";
+import { BACKEND_URL } from "../../config";
+
+const API_ORIGIN = BACKEND_URL;
 
 const getBannerImageUrl = (image) => {
   if (!image) return Banner;

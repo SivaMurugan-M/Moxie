@@ -14,6 +14,7 @@ import BrandIntro from "./components/BrandIntro/BrandIntro";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import SignInModal from "./components/auth/SignInModal";
 import { useModal } from "./context/ModalContext";
+import { BACKEND_URL } from "./config";
 
 const ProductsSelector = () => {
   const { category } = useParams();
@@ -21,10 +22,13 @@ const ProductsSelector = () => {
   return isNumeric ? <ProductDetails /> : <Products />;
 };
 
-const AdminRedirect = () => {
+
+const AdminRedirect = ({ target }) => {
   useEffect(() => {
-    window.location.href = "http://127.0.0.1:8000/admin/";
-  }, []);
+    const dest = target === "login" ? `${BACKEND_URL}/admin/login/` : `${BACKEND_URL}/admin/`;
+    window.location.href = dest;
+  }, [target]);
+
   return (
     <div style={{
       display: "flex",
@@ -39,7 +43,7 @@ const AdminRedirect = () => {
         Redirecting to Moxie Admin Portal...
       </div>
       <p style={{ color: "#8c8c8c", fontSize: "14px" }}>
-        Please wait while we redirect you to the backend admin interface.
+        Please wait while we redirect you to the admin interface.
       </p>
     </div>
   );
@@ -74,14 +78,16 @@ function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/deals" element={<Deals />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/admin" element={<AdminRedirect />} />
-        <Route path="/admin/dashboard" element={<AdminRedirect />} />
+        <Route path="/admin" element={<AdminRedirect target="dashboard" />} />
+        <Route path="/admin/dashboard" element={<AdminRedirect target="dashboard" />} />
+        <Route path="/admin/login" element={<AdminRedirect target="login" />} />
         <Route path="*" element={<div className="empty-state"><div className="empty-icon">404</div><h1>Page not found</h1><Link to="/" className="primary-btn">Back to home</Link></div>} />
       </Routes>
+
       <Footer />
 
-      {/* Sign In Modal — only rendered when on Home page and opened */}
-      {pathname === "/" && isLoginOpen && <SignInModal onClose={closeLogin} />}
+      {/* Sign In Modal */}
+      {isLoginOpen && <SignInModal onClose={closeLogin} />}
     </BrandIntro>
   );
 }

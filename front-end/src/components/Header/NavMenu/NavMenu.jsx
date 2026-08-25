@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { WishlistContext } from "../../../context/WishlistContext";
 import { CartContext } from "../../../context/CartContext";
 import { AuthContext } from "../../../context/AuthContext";
@@ -18,7 +18,6 @@ function NavMenu() {
   const { user, isLoggedIn, logout } = useContext(AuthContext);
   const { categories } = useData();
   const { openLogin } = useModal();
-  const location = useLocation();
   const navigate = useNavigate();
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -49,18 +48,8 @@ function NavMenu() {
       // Toggle account dropdown for logged-in user
       setShowUserMenu((prev) => !prev);
     } else {
-      // Logged-out user
-      if (location.pathname === "/") {
-        // Already on home page -> directly open modal in front of homepage
-        openLogin();
-      } else {
-        // On another page (e.g. /register) -> navigate home with openProfile state
-        navigate("/", {
-          state: {
-            openProfile: true,
-          },
-        });
-      }
+      // Logged-out user -> open login modal directly
+      openLogin();
     }
   };
 

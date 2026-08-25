@@ -104,7 +104,7 @@ export default function Category() {
                         <div className="category-img-container">
 
                             <img
-                                src={categoryImages[category.name]}
+                                src={categoryImages[category.name] || Watch}
                                 alt={category.name}
                                 className="category-img"
                             />

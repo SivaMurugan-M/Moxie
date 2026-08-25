@@ -15,8 +15,8 @@ function Cart() {
   };
 
   const subtotal = calculateSubtotal();
-  const originalTotal = cart.reduce((acc,item)=>acc+item.oldPrice*item.quantity,0);
-  const discount=originalTotal-subtotal;
+  const originalTotal = cart.reduce((acc, item) => acc + (item.oldPrice || item.price) * item.quantity, 0);
+  const discount = originalTotal - subtotal;
   
   // Shipping Fee: Rs. 100 for each product
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);

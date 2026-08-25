@@ -5,6 +5,9 @@
 <head>
 <title>{% block title %}{% endblock %}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link rel="stylesheet" href="{% static "admin/css/custom_admin.css" %}">
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -92,16 +95,15 @@
             </form>
         </div>
 
-        <!-- Sidebar Promo Card -->
-        <div class="sidebar-promo-card">
-            <div class="promo-icon">
-                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            </div>
-            <strong>Moxie Store</strong>
-            <p>Launch the customer e-commerce store storefront.</p>
-            <a href="http://127.0.0.1:3000" target="_blank">Open Storefront</a>
+        <!-- Simple Go to Storefront Button -->
+        <div style="padding: 16px; margin-top: auto;">
+            <a id="storefront-link" href="http://localhost:3000" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #6657ec; color: #ffffff; padding: 12px 16px; border-radius: 10px; font-weight: 600; text-decoration: none; transition: background 0.2s; font-size: 14px;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <span>Go to Storefront</span>
+            </a>
         </div>
     </nav>
+
     <button class="sidebar-scrim" aria-label="Close Sidebar" onclick="document.body.classList.remove('sidebar-open')"></button>
     {% endif %}
 
@@ -194,12 +196,28 @@
         }
     });
 
+    // Dynamic Storefront URL resolution (Localhost vs Netlify)
+    const sfLink = document.getElementById('storefront-link');
+    if (sfLink) {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        sfLink.href = isLocal ? 'http://localhost:3000' : 'https://moxie-dev.netlify.app';
+    }
+
     // Sidebar Hamburger Close on ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             document.body.classList.remove('sidebar-open');
         }
     });
+
+    // Browser Back Button Cache Protection
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted || (window.performance && window.performance.navigation && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
 </script>
+
+
 </body>
 </html>

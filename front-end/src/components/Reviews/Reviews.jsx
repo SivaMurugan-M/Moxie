@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import ReviewCard from "./ReviewCard";
 import "./Reviews.css";
 
-const API_ORIGIN = "http://127.0.0.1:8000";
+import { BACKEND_URL } from "../../config";
+
+const API_ORIGIN = BACKEND_URL;
 
 const getReviewImageUrl = (image) => {
   if (!image) return null;

@@ -1,10 +1,15 @@
 import React, { useContext, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
+import { AuthContext } from "../../context/AuthContext";
+import { orderService } from "../../services/orderService";
 import "./Checkout.css";
+
+import { API_URL } from "../../config";
 
 export default function Checkout() {
   const { cart, clearCart } = useContext(CartContext);
+  const { user } = useContext(AuthContext);
   const location = useLocation();
   const checkoutItem = location.state?.checkoutItem;
   
@@ -64,6 +69,29 @@ export default function Checkout() {
 
     if (!Object.keys(next).length) {
       if (payment === "cod") {
+        if (user?.email) {
+          const firstItem = checkoutList[0] || {};
+          orderService.placeOrder(user.email, {
+            name: checkoutList.length > 1 ? `${firstItem.name} + ${checkoutList.length - 1} more items` : firstItem.name,
+            image: firstItem.image,
+            variant: firstItem.selectedSize ? `Size: ${firstItem.selectedSize}` : "",
+            quantity: checkoutList.reduce((acc, i) => acc + i.quantity, 0),
+            price: firstItem.price || 0,
+            subtotal: subtotal,
+            discount: mrp - subtotal,
+            shippingCharge: delivery,
+            total: subtotal + delivery,
+            paymentStatus: "Pending (COD)",
+            paymentMethod: "Cash on Delivery",
+            shippingAddress: {
+              name: shippingData.shipping_name,
+              phone: shippingData.shipping_phone,
+              flat: shippingData.shipping_address,
+              city: shippingData.shipping_city,
+              pincode: shippingData.shipping_pincode,
+            }
+          });
+        }
         if (!checkoutItem) {
           clearCart();
         }
@@ -87,7 +115,7 @@ export default function Checkout() {
           quantity: item.quantity
         }));
 
-        const createOrderRes = await fetch("http://127.0.0.1:8000/api/payment/order/create/", {
+        const createOrderRes = await fetch(`${API_URL}/payment/order/create/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -115,7 +143,7 @@ export default function Checkout() {
           handler: async (response) => {
             setLoading(true);
             try {
-              const verifyRes = await fetch("http://127.0.0.1:8000/api/payment/verify/", {
+              const verifyRes = await fetch(`${API_URL}/payment/verify/`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json"

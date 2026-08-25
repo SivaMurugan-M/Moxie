@@ -85,16 +85,15 @@ export default function ProductDetails() {
         ? product.images
         : [product.image, product.image, product.image];
 
+    const isFootwear = ["shoes", "sliders", "footwear"].includes(product.category?.toLowerCase());
+
     const add = () => {
-        const sizeText = (product.category === "Shoes" || product.category === "Sliders")
-            ? ` (Size ${selectedSize})`
-            : "";
+        const sizeText = isFootwear ? ` (Size ${selectedSize})` : "";
         addToCart({ ...product, selectedSize }, quantity);
         toast(`${product.name}${sizeText} added to cart`);
     };
 
     const buy = () => {
-        const isFootwear = product.category === "Shoes" || product.category === "Sliders";
         const purchaseItem = {
             ...product,
             quantity,
@@ -113,7 +112,7 @@ export default function ProductDetails() {
                 <nav className="breadcrumbs">
                     <Link to="/">Home</Link>
                     <span>/</span>
-                    <Link to={`/products/${product.category.toLowerCase().replaceAll(" ", "-")}`}>
+                    <Link to={`/products/${(product.category || "").toLowerCase().replaceAll(" ", "-")}`}>
                         {product.category}
                     </Link>
                     <span>/</span>
@@ -171,7 +170,7 @@ export default function ProductDetails() {
                         {product.stock && (
                             <>
                                 {/* UK Sizes selector for footwear category */}
-                                {(product.category === "Shoes" || product.category === "Sliders") && (
+                                {isFootwear && (
                                     <div
                                         className="size-row"
                                         style={{
@@ -210,7 +209,7 @@ export default function ProductDetails() {
                                 <div
                                     className="quantity-row"
                                     style={{
-                                        borderTop: (product.category === "Shoes" || product.category === "Sliders")
+                                        borderTop: isFootwear
                                             ? "none"
                                             : "1px solid #eee",
                                     }}

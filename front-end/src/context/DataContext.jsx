@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { getCategories } from "../api/categoryApi";
 
+import { BACKEND_URL } from "../config";
+
 const DataContext = createContext(null);
-const API_ORIGIN = "http://127.0.0.1:8000";
+const API_ORIGIN = BACKEND_URL;
 
 const getImageUrl = (image) => {
   if (!image) return null;

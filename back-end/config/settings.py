@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/6.1/topics/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 
 
 # ============================================================
@@ -43,11 +44,11 @@ if env_file.exists():
 # SECURITY
 # ============================================================
 
-SECRET_KEY = 'django-insecure-CHANGE-THIS-IN-PRODUCTION'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-moxie-backend-prod-key-2026')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '*').split(',') if h.strip()]
 
 
 # ============================================================
@@ -86,6 +87,8 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 
     'django.middleware.security.SecurityMiddleware',
+
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
 
@@ -149,11 +152,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # ============================================================
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -208,6 +211,25 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+
+# ============================================================
+# SECURITY & PROXY HEADERS (Render / Production)
+# ============================================================
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://moxie-backend-9bar.onrender.com',
+    'https://moxie-dev.netlify.app',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
 
 # ============================================================
 # MEDIA FILES
@@ -231,27 +253,44 @@ MAILERS = {
 
 
 # ============================================================
-# CORS
+# CORS (Explicit Origins with Credentials Support)
 # ============================================================
+
+CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = [
-
     'http://localhost:3000',
-
     'http://127.0.0.1:3000',
-
+    'https://moxie-backend-9bar.onrender.com',
+    'https://moxie-dev.netlify.app',
 ]
 
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.netlify\.app$",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
 
 # ============================================================
-# SESSION SETTINGS
+# SESSION & AUTHENTICATION SETTINGS
 # ============================================================
 
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
-SESSION_COOKIE_AGE = 900
-
+# Persistent sessions across browser restart (24h validity)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 86400  # 24 hours
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+LOGIN_URL = '/admin/login/'
+LOGIN_REDIRECT_URL = '/admin/'
+LOGOUT_REDIRECT_URL = '/admin/login/'
+
+
 
 
 # ============================================================

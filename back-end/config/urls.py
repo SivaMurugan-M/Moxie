@@ -83,7 +83,11 @@ def custom_admin_index(request, extra_context=None):
         'dashboard_date': today,
     })
     
-    return original_index(request, extra_context=extra_context)
+    response = original_index(request, extra_context=extra_context)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 admin.site.index = custom_admin_index
 
@@ -96,13 +100,52 @@ def custom_logout(request):
     from django.contrib.auth import logout as django_logout
     from django.shortcuts import redirect
     django_logout(request)
-    return redirect('admin:login')
+    response = redirect('admin:login')
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
-def custom_admin_login(request):
-    from django.shortcuts import redirect
-    if 'next' in request.GET:
-        return redirect('admin:login')
-    return admin.site.login(request)
+def custom_admin_login(request, extra_context=None):
+    from django.contrib.auth.forms import AuthenticationForm
+    from django.contrib.auth import login as auth_login
+    from django.shortcuts import redirect, render
+
+    if request.user.is_authenticated and request.user.is_staff:
+        response = redirect('/admin/')
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+        return response
+
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if user.is_staff:
+                auth_login(request, user)
+                response = redirect('/admin/')
+                response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+                return response
+            else:
+                form.add_error(None, "You do not have staff permissions to access the admin portal.")
+    else:
+        form = AuthenticationForm(request)
+
+    context = {
+        'form': form,
+        'app_path': request.get_full_path(),
+        'username': request.user.get_username() if request.user.is_authenticated else '',
+        'title': 'Log in',
+    }
+    if extra_context:
+        context.update(extra_context)
+
+    response = render(request, 'admin/login.html', context)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
+
+
 
 urlpatterns = [
     path('admin/login/', custom_admin_login, name='custom_admin_login'),
@@ -110,6 +153,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
 ]
+
+
 
 if settings.DEBUG:
     urlpatterns += static(

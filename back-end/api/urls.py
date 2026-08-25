@@ -8,10 +8,28 @@ from .views import (
     CreateRazorpayOrderView,
     VerifyRazorpayPaymentView,
     RazorpayWebhookView,
+    AdminCheckAuthView,
+    AdminApiLoginView,
+    AdminApiLogoutView,
 )
 
 
 urlpatterns = [
+    path(
+        'admin/check-auth/',
+        AdminCheckAuthView.as_view(),
+        name='admin-api-check-auth'
+    ),
+    path(
+        'admin/login/',
+        AdminApiLoginView.as_view(),
+        name='admin-api-login'
+    ),
+    path(
+        'admin/logout/',
+        AdminApiLogoutView.as_view(),
+        name='admin-api-logout'
+    ),
     path(
         'categories/',
         CategoryListView.as_view(),
@@ -53,4 +71,4 @@ urlpatterns = [
         RazorpayWebhookView.as_view(),
         name='payment-webhook'
     ),
-]
+]
