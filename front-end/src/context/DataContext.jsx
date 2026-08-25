@@ -49,7 +49,7 @@ export const DataProvider = ({ children }) => {
         throw new Error(`Failed to fetch products: status ${response.status}`);
       }
       const prodData = await response.json();
-      
+
       // Map API products to frontend shape
       const mappedProducts = (prodData || []).map((p, index) => {
         const backendImages = Array.isArray(p.images) ? p.images : [];
@@ -58,7 +58,7 @@ export const DataProvider = ({ children }) => {
         const imageUrls = backendImages
           .map((img) => getImageUrl(img.image))
           .filter(Boolean);
-          
+
         const fallback = getFallbackImage(p.category_slug);
         const finalImage = imageUrl || fallback;
         const finalImages = imageUrls.length > 0 ? imageUrls : [finalImage];

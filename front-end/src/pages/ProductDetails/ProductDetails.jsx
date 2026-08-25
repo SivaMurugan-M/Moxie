@@ -8,6 +8,21 @@ import ProductShelf from "../../components/Product/ProductShelf";
 import "./ProductDetails.css";
 import "./ProductDetailsFix.css";
 
+import watchImg from "../../assets/images/watch1.png";
+import shoeImg from "../../assets/images/shoe.svg";
+import capImg from "../../assets/images/cap.png";
+import budsImg from "../../assets/images/Buds.png";
+import defaultImg from "../../assets/images/offer.png";
+
+const getFallbackImage = (category) => {
+  const cat = String(category || "").toLowerCase();
+  if (cat.includes("watch")) return watchImg;
+  if (cat.includes("footwear") || cat.includes("shoe") || cat.includes("slider")) return shoeImg;
+  if (cat.includes("cap")) return capImg;
+  if (cat.includes("gadget") || cat.includes("bud")) return budsImg;
+  return defaultImg;
+};
+
 export default function ProductDetails() {
     const { productId, category } = useParams();
     const navigate = useNavigate();
@@ -130,13 +145,13 @@ export default function ProductDetails() {
                                     className={activeImage === index ? "active" : ""}
                                     onClick={() => setActiveImage(index)}
                                 >
-                                    <img src={image} alt="" />
+                                    <img src={image || getFallbackImage(product.category)} alt="" onError={(e) => { e.target.onerror = null; e.target.src = getFallbackImage(product.category); }} />
                                 </button>
                             ))}
                         </div>
                         <div className="gallery-main">
                             {product.discount > 0 && <span className="detail-discount">{product.discount}% OFF</span>}
-                            <img src={images[activeImage]} alt={product.name} />
+                            <img src={images[activeImage] || getFallbackImage(product.category)} alt={product.name} onError={(e) => { e.target.onerror = null; e.target.src = getFallbackImage(product.category); }} />
                         </div>
                     </div>
 
