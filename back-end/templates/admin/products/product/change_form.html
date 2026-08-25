@@ -47,7 +47,7 @@
                         <div class="inline-image-row" style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; display: flex; align-items: center; gap: 12px;">
                             {{ inline_form.id }}
                             {% if inline_form.instance.image %}
-                                <img src="{{ inline_form.instance.image.url }}" style="width: 50px; height: 50px; border-radius: 6px; object-fit: contain; background: #fff; border: 1px solid #e2e8f0;">
+                                <img src="{{ inline_form.instance.image.url }}" onerror="this.onerror=null; this.src='/media/products/watch1.png';" style="width: 50px; height: 50px; border-radius: 6px; object-fit: contain; background: #fff; border: 1px solid #e2e8f0;">
                             {% else %}
                                 <div style="width: 50px; height: 50px; border-radius: 6px; background: #eaefff; color: var(--purple); display: grid; place-items: center; font-size: 20px;">🖼️</div>
                             {% endif %}

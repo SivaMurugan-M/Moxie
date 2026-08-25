@@ -3,18 +3,20 @@ import { Link, useLocation } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import { AuthContext } from "../../context/AuthContext";
 import { orderService } from "../../services/orderService";
+import { API_URL } from "../../config";
+import "./Checkout.css";
 import watchImg from "../../assets/images/watch1.png";
 import shoeImg from "../../assets/images/shoe.svg";
 import capImg from "../../assets/images/cap.png";
 import budsImg from "../../assets/images/Buds.png";
 import defaultImg from "../../assets/images/offer.png";
 
-const getFallbackImage = (category) => {
-  const cat = String(category || "").toLowerCase();
-  if (cat.includes("watch")) return watchImg;
-  if (cat.includes("footwear") || cat.includes("shoe") || cat.includes("slider")) return shoeImg;
-  if (cat.includes("cap")) return capImg;
-  if (cat.includes("gadget") || cat.includes("bud")) return budsImg;
+const getFallbackImage = (category, name) => {
+  const str = (String(category || "") + " " + String(name || "")).toLowerCase();
+  if (str.includes("watch")) return watchImg;
+  if (str.includes("footwear") || str.includes("shoe") || str.includes("slider")) return shoeImg;
+  if (str.includes("cap")) return capImg;
+  if (str.includes("gadget") || str.includes("bud")) return budsImg;
   return defaultImg;
 };
 
@@ -287,11 +289,12 @@ export default function Checkout() {
         <aside className="order-summary">
           <h2>Order summary</h2>
           {checkoutList.map((i) => {
-            const fallback = getFallbackImage(i.category);
+            const fallback = getFallbackImage(i.category, i.name);
+            const itemImgSrc = i.image && !i.image.includes("ChatGPT_Image") ? i.image : fallback;
             return (
               <div className="summary-item" key={i.id}>
                 <img
-                  src={i.image || fallback}
+                  src={itemImgSrc}
                   alt={i.name}
                   onError={(e) => {
                     e.target.onerror = null;

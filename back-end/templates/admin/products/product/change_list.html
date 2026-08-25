@@ -228,7 +228,7 @@
                                                 <td>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                         {item.imageUrl ? (
-                                                            <img src={item.imageUrl} style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'contain', background: '#f8fafc', border: '1px solid #f1f5f9' }} />
+                                                            <img src={item.imageUrl} onError={(e) => { e.target.onerror = null; e.target.src = '/media/products/watch1.png'; }} style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'contain', background: '#f8fafc', border: '1px solid #f1f5f9' }} />
                                                         ) : (
                                                             <div style={{ width: '44px', height: '44px', borderRadius: '8px', display: 'grid', placeItems: 'center', background: '#f1f5f9', color: 'var(--purple)', fontSize: '20px' }}>📦</div>
                                                         )}

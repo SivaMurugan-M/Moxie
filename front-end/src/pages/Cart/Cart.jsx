@@ -11,12 +11,12 @@ import capImg from "../../assets/images/cap.png";
 import budsImg from "../../assets/images/Buds.png";
 import defaultImg from "../../assets/images/offer.png";
 
-const getFallbackImage = (category) => {
-  const cat = String(category || "").toLowerCase();
-  if (cat.includes("watch")) return watchImg;
-  if (cat.includes("footwear") || cat.includes("shoe") || cat.includes("slider")) return shoeImg;
-  if (cat.includes("cap")) return capImg;
-  if (cat.includes("gadget") || cat.includes("bud")) return budsImg;
+const getFallbackImage = (category, name) => {
+  const str = (String(category || "") + " " + String(name || "")).toLowerCase();
+  if (str.includes("watch")) return watchImg;
+  if (str.includes("footwear") || str.includes("shoe") || str.includes("slider")) return shoeImg;
+  if (str.includes("cap")) return capImg;
+  if (str.includes("gadget") || str.includes("bud")) return budsImg;
   return defaultImg;
 };
 
@@ -56,14 +56,15 @@ function Cart() {
           <div className="col-lg-8">
             <div className="cart-items-wrapper p-4 bg-white rounded-4 border border-light shadow-sm">
               {cart.map((item) => {
-                const fallback = getFallbackImage(item.category);
+                const fallback = getFallbackImage(item.category, item.name);
+                const itemImgSrc = item.image && !item.image.includes("ChatGPT_Image") ? item.image : fallback;
                 return (
                   <div key={`${item.id}-${item.selectedSize}`} className="cart-item d-flex align-items-center justify-content-between py-3 border-bottom last-border-none">
                     {/* Image & Product info */}
                     <div className="d-flex align-items-center gap-3" style={{ flex: "1" }}>
                       <div className="cart-item-img-container p-2 rounded-3 border border-light bg-light-subtle d-flex align-items-center justify-content-center">
                         <img
-                          src={item.image || fallback}
+                          src={itemImgSrc}
                           alt={item.name}
                           className="img-fluid cart-item-image"
                           onError={(e) => {
@@ -129,7 +130,7 @@ function Cart() {
 
               <div className="summary-row d-flex justify-content-between mb-3">
                 <span className="text-muted">Shipping Fee</span>
-                <span className="fw-semibold text-success">FREE</span>
+                <span className="fw-semibold text-dark">Rs. 0.00</span>
               </div>
 
               <hr className="my-4" />
