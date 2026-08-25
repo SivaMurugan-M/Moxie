@@ -3,9 +3,20 @@ import { Link, useLocation } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import { AuthContext } from "../../context/AuthContext";
 import { orderService } from "../../services/orderService";
-import "./Checkout.css";
+import watchImg from "../../assets/images/watch1.png";
+import shoeImg from "../../assets/images/shoe.svg";
+import capImg from "../../assets/images/cap.png";
+import budsImg from "../../assets/images/Buds.png";
+import defaultImg from "../../assets/images/offer.png";
 
-import { API_URL } from "../../config";
+const getFallbackImage = (category) => {
+  const cat = String(category || "").toLowerCase();
+  if (cat.includes("watch")) return watchImg;
+  if (cat.includes("footwear") || cat.includes("shoe") || cat.includes("slider")) return shoeImg;
+  if (cat.includes("cap")) return capImg;
+  if (cat.includes("gadget") || cat.includes("bud")) return budsImg;
+  return defaultImg;
+};
 
 export default function Checkout() {
   const { cart, clearCart } = useContext(CartContext);
@@ -25,9 +36,9 @@ export default function Checkout() {
   const subtotal = checkoutList.reduce((s, i) => s + i.price * i.quantity, 0);
   const mrp = checkoutList.reduce((s, i) => s + (i.oldPrice || i.price) * i.quantity, 0);
   
-  // Delivery Fee: Rs. 100 for each product
-  const totalItems = checkoutList.reduce((acc, item) => acc + item.quantity, 0);
-  const delivery = totalItems * 100;
+  // Dynamic Delivery Fee: Rs. 100 for COD Promise Fee, FREE for Online Payment
+  const delivery = payment === "cod" ? 100 : 0;
+  const grandTotal = subtotal + delivery;
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -80,7 +91,7 @@ export default function Checkout() {
             subtotal: subtotal,
             discount: mrp - subtotal,
             shippingCharge: delivery,
-            total: subtotal + delivery,
+            total: grandTotal,
             paymentStatus: "Pending (COD)",
             paymentMethod: "Cash on Delivery",
             shippingAddress: {
@@ -275,19 +286,29 @@ export default function Checkout() {
 
         <aside className="order-summary">
           <h2>Order summary</h2>
-          {checkoutList.map((i) => (
-            <div className="summary-item" key={i.id}>
-              <img src={i.image} alt="" />
-              <span>
-                {i.name}
-                <small>
-                  {i.selectedColor}
-                  {i.selectedSize ? ` · Size ${i.selectedSize}` : ""} · Qty: {i.quantity}
-                </small>
-              </span>
-              <b>₹{(i.price * i.quantity).toLocaleString("en-IN")}</b>
-            </div>
-          ))}
+          {checkoutList.map((i) => {
+            const fallback = getFallbackImage(i.category);
+            return (
+              <div className="summary-item" key={i.id}>
+                <img
+                  src={i.image || fallback}
+                  alt={i.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = fallback;
+                  }}
+                />
+                <span>
+                  {i.name}
+                  <small>
+                    {i.selectedColor}
+                    {i.selectedSize ? ` · Size ${i.selectedSize}` : ""} · Qty: {i.quantity}
+                  </small>
+                </span>
+                <b>₹{(i.price * i.quantity).toLocaleString("en-IN")}</b>
+              </div>
+            );
+          })}
           <dl>
             <div>
               <dt>MRP</dt>
@@ -298,12 +319,14 @@ export default function Checkout() {
               <dd>−₹{(mrp - subtotal).toLocaleString("en-IN")}</dd>
             </div>
             <div>
-              <dt>Delivery</dt>
-              <dd>₹{delivery.toLocaleString("en-IN")}</dd>
+              <dt>{payment === "cod" ? "COD Promise Fee" : "Delivery"}</dt>
+              <dd style={{ color: payment === "cod" ? "#111" : "#16a34a" }}>
+                {payment === "cod" ? "₹100" : "FREE"}
+              </dd>
             </div>
             <div className="summary-total">
               <dt>Total</dt>
-              <dd>₹{(subtotal + delivery).toLocaleString("en-IN")}</dd>
+              <dd>₹{grandTotal.toLocaleString("en-IN")}</dd>
             </div>
           </dl>
           <button className="primary-btn" disabled={loading}>
