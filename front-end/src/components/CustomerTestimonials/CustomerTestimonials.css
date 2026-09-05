@@ -1,0 +1,291 @@
+/* ===================================================
+   MOXIE CUSTOMER TESTIMONIALS SECTION
+   =================================================== */
+
+.customer-testimonials-section {
+  width: 100%;
+  background: #ffffff;
+  padding: 72px 0 90px;
+  position: relative;
+  overflow: hidden;
+}
+
+.testimonials-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.testimonials-heading {
+  font-size: clamp(26px, 3.5vw, 36px);
+  font-weight: 700;
+  color: #111111;
+  text-align: center;
+  margin: 0 0 54px 0;
+  letter-spacing: -0.5px;
+}
+
+/* Carousel Outer Wrapper with side navigation buttons */
+.testimonials-carousel-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Nav Arrow Buttons */
+.testimonial-nav-btn {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #222222;
+  color: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  z-index: 5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.testimonial-nav-btn:hover {
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
+  transform: scale(1.06);
+}
+
+.testimonial-nav-btn:active {
+  transform: scale(0.95);
+}
+
+.nav-btn-icon {
+  font-size: 22px;
+}
+
+/* Cards Grid */
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+  max-width: 1140px;
+  align-items: center;
+  padding: 24px 0;
+}
+
+/* Common Card Styles */
+.testimonial-card {
+  border-radius: 14px;
+  min-height: 350px;
+  padding: 28px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 22px;
+  box-sizing: border-box;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease;
+}
+
+/* Standard White Cards (Slot 0 and Slot 2) */
+.standard-card {
+  background: #ffffff;
+  border: 1px solid #222222;
+  box-shadow: 0 8px 0 #111111;
+  color: #222222;
+}
+
+.standard-card .testimonial-user-name {
+  color: #222222;
+}
+
+.standard-card .testimonial-quote-icon {
+  color: #111111;
+}
+
+.standard-card .testimonial-message {
+  color: #333333;
+}
+
+/* Featured Middle Black Card (Slot 1) */
+.featured-card {
+  background: #050505;
+  color: #ffffff;
+  border: 1px solid #050505;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+  transform: translateY(-18px);
+  padding-top: 34px;
+}
+
+.featured-card .testimonial-user-name {
+  color: #ffffff;
+}
+
+.featured-card .testimonial-quote-icon {
+  color: #ffffff;
+  opacity: 0.92;
+}
+
+.featured-card .testimonial-message {
+  color: #e5e5e5;
+}
+
+/* Card Header Layout: [ Avatar ] [ Name + Stars ] ... [ Quote Icon ] */
+.testimonial-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.testimonial-user-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.testimonial-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+}
+
+.featured-card .testimonial-avatar {
+  border-color: #f5b800;
+}
+
+.standard-card .testimonial-avatar {
+  border-color: #e5e7eb;
+}
+
+.testimonial-user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.testimonial-user-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.testimonial-stars-wrap {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.testimonial-star {
+  display: inline-block;
+}
+
+/* Quote Icon */
+.testimonial-quote-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card Message Body */
+.testimonial-card-body {
+  flex: 1;
+}
+
+.testimonial-message {
+  font-size: 15.5px;
+  line-height: 1.65;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* ===================================================
+   RESPONSIVE DESIGN
+   =================================================== */
+
+@media (max-width: 992px) {
+  .customer-testimonials-section {
+    padding: 60px 0 75px;
+  }
+
+  .testimonials-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .card-slot-2 {
+    display: none;
+  }
+
+  .featured-card {
+    transform: translateY(-8px);
+  }
+}
+
+@media (max-width: 680px) {
+  .customer-testimonials-section {
+    padding: 48px 16px 60px;
+  }
+
+  .testimonials-container {
+    padding: 0;
+  }
+
+  .testimonials-heading {
+    margin-bottom: 32px;
+  }
+
+  .testimonials-carousel-wrapper {
+    gap: 10px;
+  }
+
+  .testimonial-nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nav-btn-icon {
+    font-size: 18px;
+  }
+
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 10px 0;
+  }
+
+  .card-slot-1,
+  .card-slot-2 {
+    display: none;
+  }
+
+  .testimonial-card {
+    min-height: auto;
+    padding: 24px 20px;
+    transform: none !important;
+  }
+
+  .testimonial-avatar {
+    width: 58px;
+    height: 58px;
+  }
+
+  .testimonial-user-name {
+    font-size: 16px;
+  }
+
+  .testimonial-message {
+    font-size: 14.5px;
+  }
+}
