@@ -168,7 +168,7 @@ export default function RecommendedForYou() {
                   aria-label={watch.name}
                 >
                   {/* Top Image Media Area */}
-                  <div className="watch-card-media">
+                  <div className="watch-card-media product-image-container">
                     {watch.discount > 0 && (
                       <span className="watch-discount-badge">
                         {watch.discount}% OFF

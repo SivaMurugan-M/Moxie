@@ -1,39 +1,39 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CustomerTestimonials from "./CustomerTestimonials";
 
-describe("CustomerTestimonials Component", () => {
-  it("renders the heading, 3 testimonial cards, and nav buttons on desktop", () => {
+describe("CustomerTestimonials Component - Continuous Marquee", () => {
+  it("renders the heading and continuous marquee container", () => {
     render(<CustomerTestimonials />);
 
     expect(screen.getByText("Customers are saying us?")).toBeInTheDocument();
-
-    const prevBtn = screen.getByRole("button", { name: /previous testimonial/i });
-    const nextBtn = screen.getByRole("button", { name: /next testimonial/i });
-    expect(prevBtn).toBeInTheDocument();
-    expect(nextBtn).toBeInTheDocument();
-
-    // Check visible cards
-    const customerNames = screen.getAllByRole("heading", { level: 3 });
-    expect(customerNames.length).toBeGreaterThanOrEqual(3);
+    expect(screen.getByLabelText("Customer Reviews Carousel")).toBeInTheDocument();
   });
 
-  it("navigates through testimonials when next and prev buttons are clicked", () => {
+  it("renders all customer reviews including the 2 additional reviews", () => {
     render(<CustomerTestimonials />);
 
-    const nextBtn = screen.getByRole("button", { name: /next testimonial/i });
-    const prevBtn = screen.getByRole("button", { name: /previous testimonial/i });
+    // Existing reviews
+    expect(screen.getAllByText("Aarav Sharma").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Rohan Kapoor").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Priya Nair").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Vikram Malhotra").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Ananya Iyer").length).toBeGreaterThanOrEqual(1);
 
-    // Initial first card
-    expect(screen.getByText("Aarav Sharma")).toBeInTheDocument();
+    // 2 newly added reviews
+    expect(screen.getAllByText("Arjun Kumar").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Priya S").length).toBeGreaterThanOrEqual(1);
+  });
 
-    // Click next
-    fireEvent.click(nextBtn);
-    expect(screen.getByText("Rohan Kapoor")).toBeInTheDocument();
+  it("contains both original and duplicated groups for seamless loop", () => {
+    const { container } = render(<CustomerTestimonials />);
 
-    // Click prev
-    fireEvent.click(prevBtn);
-    expect(screen.getByText("Aarav Sharma")).toBeInTheDocument();
+    const track = container.querySelector(".testimonial-track");
+    const groups = container.querySelectorAll(".testimonial-group");
+
+    expect(track).toBeInTheDocument();
+    expect(groups).toHaveLength(2);
+    expect(groups[1]).toHaveAttribute("aria-hidden", "true");
   });
 });

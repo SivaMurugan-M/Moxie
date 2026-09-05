@@ -4,7 +4,7 @@ import { FiArrowRight } from "react-icons/fi";
 import "./PromotionalBanner.css";
 
 // Exact 3 Banner Images
-import banner1 from "../../assets/images/banners/banner_lamborghini.jpg";
+import banner1 from "../../assets/images/banners/banner_lamborghini.jpeg";
 import banner2 from "../../assets/images/banners/banner_gshock.jpg";
 import banner3 from "../../assets/images/banners/banner_thar.jpg";
 

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { BACKEND_URL } from "../../config";
 import "./CustomerTestimonials.css";
 
@@ -49,6 +48,22 @@ const DEFAULT_TESTIMONIALS = [
       "Moxie is my go-to luxury lifestyle store now. Great warranty, authentic luxury items, and pristine packaging. Truly love the craftsmanship.",
     image: profile2,
   },
+  {
+    id: "testimonial-6",
+    name: "Arjun Kumar",
+    rating: 5,
+    message:
+      "Great collection and a smooth shopping experience. The product quality was excellent and delivery was faster than expected.",
+    image: profile3,
+  },
+  {
+    id: "testimonial-7",
+    name: "Priya S",
+    rating: 5,
+    message:
+      "Very happy with my purchase. The product matched the photos perfectly and the entire ordering process was simple and convenient.",
+    image: profile1,
+  },
 ];
 
 const getReviewImageUrl = (image) => {
@@ -62,7 +77,6 @@ const getReviewImageUrl = (image) => {
 
 export default function CustomerTestimonials() {
   const [testimonials, setTestimonials] = useState(DEFAULT_TESTIMONIALS);
-  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/reviews/`)
@@ -81,7 +95,13 @@ export default function CustomerTestimonials() {
               getReviewImageUrl(item.image) ||
               (idx % 3 === 0 ? profile1 : idx % 3 === 1 ? profile2 : profile3),
           }));
-          setTestimonials(mapped);
+          // Ensure we have at least 5-7 items for smooth animation
+          if (mapped.length < 5) {
+            const combined = [...mapped, ...DEFAULT_TESTIMONIALS.slice(mapped.length)];
+            setTestimonials(combined);
+          } else {
+            setTestimonials(mapped);
+          }
         }
       })
       .catch(() => {
@@ -89,26 +109,9 @@ export default function CustomerTestimonials() {
       });
   }, []);
 
-  const total = testimonials.length;
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + total) % total);
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % total);
-  };
-
   if (!testimonials || testimonials.length === 0) {
     return null;
   }
-
-  // Get 3 consecutive items for the carousel view
-  const visibleCards = [
-    testimonials[currentIndex % total],
-    testimonials[(currentIndex + 1) % total],
-    testimonials[(currentIndex + 2) % total],
-  ];
 
   const renderStars = (rating = 5) => {
     const stars = [];
@@ -131,86 +134,82 @@ export default function CustomerTestimonials() {
     return stars;
   };
 
+  const renderCard = (item, uniqueKey, isDuplicate = false) => {
+    return (
+      <article
+        key={uniqueKey}
+        className="testimonial-card standard-card"
+        aria-hidden={isDuplicate ? "true" : undefined}
+      >
+        {/* Card Header: Avatar, Name, Stars & Quote Icon */}
+        <div className="testimonial-card-header">
+          <div className="testimonial-user-meta">
+            <img
+              src={item.image || profile1}
+              alt={item.name}
+              className="testimonial-avatar"
+              onError={(e) => {
+                e.currentTarget.src = profile1;
+              }}
+            />
+            <div className="testimonial-user-details">
+              <h3 className="testimonial-user-name">{item.name}</h3>
+              <div
+                className="testimonial-stars-wrap"
+                aria-label={`${item.rating || 5} out of 5 stars`}
+              >
+                {renderStars(item.rating)}
+              </div>
+            </div>
+          </div>
+
+          {/* Top Right Quote Icon */}
+          <div className="testimonial-quote-icon" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              width="32"
+              height="32"
+              fill="currentColor"
+            >
+              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Card Message Body */}
+        <div className="testimonial-card-body">
+          <p className="testimonial-message">{item.message}</p>
+        </div>
+      </article>
+    );
+  };
+
   return (
-    <section className="customer-testimonials-section" aria-label="Customer Testimonials">
+    <section
+      className="customer-testimonials-section"
+      aria-label="Customer Testimonials"
+    >
       <div className="testimonials-container">
         {/* Section Heading */}
         <h2 className="testimonials-heading">Customers are saying us?</h2>
+      </div>
 
-        {/* Carousel Row with Side Arrow Buttons */}
-        <div className="testimonials-carousel-wrapper">
-          {/* Left Arrow Button */}
-          <button
-            type="button"
-            className="testimonial-nav-btn prev-btn"
-            onClick={handlePrev}
-            aria-label="Previous testimonial"
-          >
-            <FiChevronLeft className="nav-btn-icon" aria-hidden="true" />
-          </button>
-
-          {/* 3 Testimonial Cards */}
-          <div className="testimonials-grid">
-            {visibleCards.map((item, index) => {
-              const isFeatured = index === 1; // Middle card is the featured card
-              return (
-                <div
-                  key={`${item.id}-${index}`}
-                  className={`testimonial-card ${isFeatured ? "featured-card" : "standard-card"} card-slot-${index}`}
-                >
-                  {/* Card Header: Avatar, Name, Stars & Quote Icon */}
-                  <div className="testimonial-card-header">
-                    <div className="testimonial-user-meta">
-                      <img
-                        src={item.image || profile1}
-                        alt={item.name}
-                        className="testimonial-avatar"
-                        onError={(e) => {
-                          e.currentTarget.src = profile1;
-                        }}
-                      />
-                      <div className="testimonial-user-details">
-                        <h3 className="testimonial-user-name">{item.name}</h3>
-                        <div
-                          className="testimonial-stars-wrap"
-                          aria-label={`${item.rating || 5} out of 5 stars`}
-                        >
-                          {renderStars(item.rating)}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Top Right Quote Icon */}
-                    <div className="testimonial-quote-icon" aria-hidden="true">
-                      <svg
-                        viewBox="0 0 24 24"
-                        width="36"
-                        height="36"
-                        fill="currentColor"
-                      >
-                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* Card Message */}
-                  <div className="testimonial-card-body">
-                    <p className="testimonial-message">{item.message}</p>
-                  </div>
-                </div>
-              );
-            })}
+      {/* Continuous Marquee Carousel Moving Right to Left */}
+      <div className="testimonial-marquee" aria-label="Customer Reviews Carousel">
+        <div className="testimonial-track">
+          {/* Group 1: Original Reviews */}
+          <div className="testimonial-group">
+            {testimonials.map((item, index) =>
+              renderCard(item, `orig-${item.id || index}`, false)
+            )}
           </div>
 
-          {/* Right Arrow Button */}
-          <button
-            type="button"
-            className="testimonial-nav-btn next-btn"
-            onClick={handleNext}
-            aria-label="Next testimonial"
-          >
-            <FiChevronRight className="nav-btn-icon" aria-hidden="true" />
-          </button>
+          {/* Group 2: Duplicated for Seamless Infinite Loop */}
+          <div className="testimonial-group" aria-hidden="true">
+            {testimonials.map((item, index) =>
+              renderCard(item, `dup-${item.id || index}`, true)
+            )}
+          </div>
         </div>
       </div>
     </section>
