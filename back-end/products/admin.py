@@ -30,6 +30,7 @@ class ProductAdmin(admin.ModelAdmin):
         extra_context['active_products_count'] = products.filter(is_active=True).count()
         extra_context['out_of_stock_count'] = products.filter(stock=0).count()
         extra_context['total_inventory_value'] = sum(p.price * p.stock for p in products)
+        extra_context['categories_list'] = Category.objects.all()
         return super().changelist_view(request, extra_context=extra_context)
 
     list_filter = (
