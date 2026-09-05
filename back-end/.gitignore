@@ -44,3 +44,6 @@ staticfiles/
 .idea/
 .DS_Store
 Thumbs.db
+scratch/
+test_*.py
+react/node_modules/

@@ -1,0 +1,174 @@
+/* =========================================================
+   OfferPopup — customer-facing promotional offer popup
+   Uses the existing Moxie design language:
+   - Font: Outfit (from index.css import)
+   - Colors: #000000 (bg), #fdb101 (gold accent), #fff (text)
+   - Border radius: 16px (matching .offer-card)
+   - Smooth animations
+   ========================================================= */
+
+/* ── Overlay ─────────────────────────────────────────────── */
+.offer-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  /* start hidden */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.offer-popup-overlay--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Card ────────────────────────────────────────────────── */
+.offer-popup-card {
+  position: relative;
+  background: #000000;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(253, 177, 1, 0.25);
+  overflow: hidden;
+
+  /* start scaled down + slightly up */
+  transform: scale(0.88) translateY(20px);
+  opacity: 0;
+  transition:
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.3s ease;
+}
+
+.offer-popup-card--visible {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+/* ── Close button ────────────────────────────────────────── */
+.offer-popup-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.offer-popup-close:hover {
+  background: rgba(253, 177, 1, 0.25);
+  transform: scale(1.1);
+}
+
+/* ── Top bar ─────────────────────────────────────────────── */
+.offer-popup-topbar {
+  background: linear-gradient(90deg, #fdb101 0%, #ffcc44 50%, #fdb101 100%);
+  padding: 10px 20px;
+  text-align: center;
+}
+
+.offer-popup-tag {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #000000;
+  text-transform: uppercase;
+}
+
+/* ── Body ────────────────────────────────────────────────── */
+.offer-popup-body {
+  padding: 28px 28px 20px 28px;
+}
+
+.offer-popup-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.75;
+  margin: 0;
+  white-space: pre-line;       /* preserves admin line breaks */
+  word-break: break-word;
+}
+
+/* ── Footer / CTA ────────────────────────────────────────── */
+.offer-popup-footer {
+  padding: 0 28px 28px 28px;
+  display: flex;
+  justify-content: center;
+}
+
+.offer-popup-cta {
+  display: inline-block;
+  text-decoration: none;
+  background: #fdb101;
+  color: #000000;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 12px 36px;
+  border-radius: 999px;
+  letter-spacing: 0.3px;
+  transition: background 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+  box-shadow: 0 4px 16px rgba(253, 177, 1, 0.35);
+}
+
+.offer-popup-cta:hover {
+  background: #ffffff;
+  color: #000000;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .offer-popup-overlay {
+    padding: 16px;
+    align-items: flex-end;     /* slide up from bottom on mobile */
+  }
+
+  .offer-popup-card {
+    max-width: 100%;
+    border-radius: 20px 20px 16px 16px;
+  }
+
+  .offer-popup-body {
+    padding: 22px 20px 16px 20px;
+  }
+
+  .offer-popup-text {
+    font-size: 14px;
+  }
+
+  .offer-popup-footer {
+    padding: 0 20px 22px 20px;
+  }
+
+  .offer-popup-cta {
+    width: 100%;
+    text-align: center;
+  }
+}
