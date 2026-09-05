@@ -18,6 +18,16 @@ class CategoryAdmin(admin.ModelAdmin):
         'updated_at',
     )
 
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        categories = Category.objects.all()
+        subcategories = Subcategory.objects.all()
+        extra_context['total_categories_count'] = categories.count()
+        extra_context['active_categories_count'] = categories.filter(is_active=True).count()
+        extra_context['inactive_categories_count'] = categories.filter(is_active=False).count()
+        extra_context['total_subcategories_count'] = subcategories.count()
+        return super().changelist_view(request, extra_context=extra_context)
+
     prepopulated_fields = {'slug': ('name',)}
 
     list_filter = (

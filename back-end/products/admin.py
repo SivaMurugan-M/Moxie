@@ -1,6 +1,7 @@
 from django.contrib import admin
-
-from .models import Product, ProductImage, Review
+from categories.models import Category
+from django.db.models import Avg
+from .models import Product, ProductImage, ProductVariant, VariantImage, Review
 
 
 class ProductImageInline(admin.TabularInline):
@@ -8,6 +9,10 @@ class ProductImageInline(admin.TabularInline):
     extra = 1
     max_num = 3
 
+
+class ProductVariantInline(admin.TabularInline):
+    model = ProductVariant
+    extra = 1
 
 
 @admin.register(Product)
@@ -46,6 +51,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     inlines = [
         ProductImageInline,
+        ProductVariantInline,
     ]
 
 
@@ -54,17 +60,32 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'rating',
+        'status',
         'is_active',
         'created_at',
     )
 
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        reviews = Review.objects.all()
+        extra_context['total_reviews_count'] = reviews.count()
+        extra_context['pending_reviews_count'] = reviews.filter(status='Pending').count()
+        extra_context['approved_reviews_count'] = reviews.filter(status='Approved').count()
+        avg_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 5.0
+        extra_context['avg_rating_value'] = round(float(avg_rating), 1)
+        extra_context['products_list'] = Product.objects.all()
+        return super().changelist_view(request, extra_context=extra_context)
+
     list_filter = (
         'rating',
+        'status',
         'is_active',
     )
 
     search_fields = (
         'name',
         'text',
+        'email',
     )
+
 
