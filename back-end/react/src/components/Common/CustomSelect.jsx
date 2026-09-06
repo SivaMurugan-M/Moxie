@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { AppIcon, ArrowDownIcon, CheckIcon } from '../../icons'
+import './CustomSelect.css'
 
 export default function CustomSelect({
   value,
@@ -22,26 +23,33 @@ export default function CustomSelect({
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef(null)
 
-  // Normalize options array into [{ value, label, icon }]
+  // Normalize options array into [{ value, label, icon, dotColor, color, bg, border }]
   const normalizedOptions = options.map((opt) => {
     if (typeof opt === 'object' && opt !== null && 'value' in opt) {
       return {
         value: opt.value,
         label: opt.label !== undefined ? opt.label : String(opt.value),
-        icon: opt.icon || null
+        icon: opt.icon || null,
+        dotColor: opt.dotColor || null,
+        color: opt.color || null,
+        bg: opt.bg || null,
+        border: opt.border || null,
       }
     }
     return {
       value: opt,
       label: String(opt),
-      icon: null
+      icon: null,
+      dotColor: null,
+      color: null,
+      bg: null,
+      border: null,
     }
   })
 
   // Find currently selected option
   const selectedOption = normalizedOptions.find((opt) => String(opt.value) === String(value))
   const displayLabel = selectedOption ? selectedOption.label : placeholder
-
   // Close when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
@@ -64,6 +72,8 @@ export default function CustomSelect({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen])
 
+  const isFullWidth = width === '100%'
+
   return (
     <div
       ref={dropdownRef}
@@ -71,9 +81,11 @@ export default function CustomSelect({
       className={`custom-select-container ${className}`.trim()}
       style={{
         position: 'relative',
-        display: width === '100%' ? 'block' : 'inline-block',
+        display: isFullWidth ? 'block' : 'inline-block',
         width: width || (minWidth ? 'auto' : undefined),
-        minWidth: width === '100%' ? undefined : minWidth,
+        minWidth: isFullWidth ? undefined : minWidth,
+        boxSizing: 'border-box',
+        zIndex: isOpen ? 100 : 'auto',
         ...style
       }}
     >
@@ -87,34 +99,47 @@ export default function CustomSelect({
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '8px',
+          gap: '6px',
           width: '100%',
           height: height,
-          background: disabled ? 'var(--card-soft, #f8fafc)' : 'var(--input-bg, #ffffff)',
-          border: isOpen ? '1px solid var(--purple, #6366f1)' : '1px solid var(--input-border, #cbd5e1)',
-          borderRadius: '8px',
+          background: disabled ? 'var(--card-soft, #f8fafc)' : (selectedOption?.bg || 'var(--input-bg, #ffffff)'),
+          border: isOpen ? '1.5px solid #2563eb' : (selectedOption?.border || '1.5px solid var(--input-border, #cbd5e1)'),
+          borderRadius: '10px',
           padding: '0 12px',
-          fontSize: '12.5px',
+          fontSize: '13px',
           fontWeight: '600',
-          color: disabled ? 'var(--muted, #94a3b8)' : 'var(--ink, #0f172a)',
+          color: disabled ? 'var(--muted, #94a3b8)' : (selectedOption?.color || (selectedOption ? 'var(--ink, #0f172a)' : 'var(--ink-secondary, #64748b)')),
           cursor: disabled ? 'not-allowed' : 'pointer',
           userSelect: 'none',
           boxSizing: 'border-box',
-          boxShadow: isOpen ? '0 0 0 3px rgba(99, 102, 241, 0.12)' : '0 1px 2px rgba(0,0,0,0.03)',
-          transition: 'all 0.15s ease',
+          boxShadow: isOpen ? '0 0 0 3px rgba(37, 99, 235, 0.12)' : 'none',
+          transition: 'border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease',
           outline: 'none',
           ...buttonStyle
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, overflow: 'hidden' }}>
-          {prefixIcon && <AppIcon icon={prefixIcon} size={15} color="#6366f1" style={{ flexShrink: 0 }} />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1, textAlign: 'left' }}>
+          {prefixIcon && <AppIcon icon={prefixIcon} size={15} color="#2563eb" style={{ flexShrink: 0 }} />}
+          {selectedOption?.dotColor && (
+            <span
+              style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                backgroundColor: selectedOption.dotColor,
+                flexShrink: 0
+              }}
+            />
+          )}
           <span
             style={{
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              color: selectedOption ? 'var(--ink, #0f172a)' : 'var(--ink-secondary, #64748b)',
-              fontWeight: selectedOption ? '600' : '400'
+              color: selectedOption?.color || (selectedOption ? 'var(--ink, #0f172a)' : 'var(--ink-secondary, #64748b)'),
+              fontWeight: '600',
+              textAlign: 'left',
+              display: 'inline-block'
             }}
           >
             {displayLabel}
@@ -123,13 +148,13 @@ export default function CustomSelect({
 
         <AppIcon
           icon={ArrowDownIcon}
-          size={13}
-          color="var(--ink-secondary, #64748b)"
+          size={12}
+          color={selectedOption?.color || 'var(--ink-secondary, #64748b)'}
           style={{
             transform: isOpen ? 'rotate(180deg)' : 'none',
             transition: 'transform 0.2s ease',
             flexShrink: 0,
-            marginLeft: '4px'
+            marginLeft: '2px'
           }}
         />
       </button>
@@ -141,20 +166,23 @@ export default function CustomSelect({
             position: 'absolute',
             top: 'calc(100% + 5px)',
             left: align === 'right' ? 'auto' : 0,
-            right: align === 'right' ? 0 : 'auto',
+            right: align === 'right' ? 0 : (isFullWidth ? 0 : 'auto'),
+            width: isFullWidth ? '100%' : 'max-content',
             minWidth: '100%',
-            maxWidth: '340px',
-            maxHeight: '260px',
-            overflowY: 'auto',
+            maxWidth: isFullWidth ? '100%' : '380px',
+            maxHeight: '230px',
+            overflowY: normalizedOptions.length > 5 ? 'auto' : 'hidden',
+            overflowX: 'hidden',
             background: 'var(--card, #ffffff)',
             border: '1px solid var(--line, #e2e8f0)',
-            borderRadius: '10px',
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.10)',
+            borderRadius: '12px',
+            boxShadow: '0 12px 32px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(15, 23, 42, 0.08)',
             padding: '5px',
-            zIndex: 1000,
+            zIndex: 9999,
             display: 'flex',
             flexDirection: 'column',
             gap: '2px',
+            boxSizing: 'border-box',
             ...menuStyle
           }}
         >
@@ -179,28 +207,49 @@ export default function CustomSelect({
                   width: '100%',
                   padding: '7px 10px',
                   border: 'none',
-                  borderRadius: '6px',
-                  background: isSelected ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                  color: isSelected ? 'var(--purple, #6366f1)' : 'var(--ink, #1e293b)',
+                  borderRadius: '7px',
+                  background: isSelected ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
+                  color: isSelected ? '#2563eb' : (opt.color || 'var(--ink, #1e293b)'),
                   fontSize: '12.5px',
                   fontWeight: isSelected ? '700' : '500',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  transition: 'background-color 0.15s ease',
-                  whiteSpace: 'nowrap'
+                  transition: 'background-color 0.15s ease, color 0.15s ease',
+                  boxSizing: 'border-box'
                 }}
                 onMouseEnter={(e) => {
-                  if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--card-soft, #f8fafc)'
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'var(--card-soft, #f8fafc)'
+                    if (!opt.color) e.currentTarget.style.color = 'var(--ink, #0f172a)'
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                    if (!opt.color) e.currentTarget.style.color = 'var(--ink, #1e293b)'
+                  }
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                  {opt.icon && <AppIcon icon={opt.icon} size={14} />}
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{opt.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, flex: 1, textAlign: 'left' }}>
+                  {opt.dotColor && (
+                    <span
+                      style={{
+                        width: '7px',
+                        height: '7px',
+                        borderRadius: '50%',
+                        backgroundColor: opt.dotColor,
+                        flexShrink: 0
+                      }}
+                    />
+                  )}
+                  {opt.icon && <AppIcon icon={opt.icon} size={14} style={{ flexShrink: 0 }} />}
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left', display: 'block', flex: 1, color: isSelected ? '#2563eb' : (opt.color || undefined) }}>
+                    {opt.label}
+                  </span>
                 </div>
-                {isSelected && <AppIcon icon={CheckIcon} size={13} color="var(--purple, #6366f1)" style={{ flexShrink: 0 }} />}
+                {isSelected && (
+                  <AppIcon icon={CheckIcon} size={13} color="#2563eb" style={{ flexShrink: 0, marginLeft: 'auto' }} />
+                )}
               </button>
             )
           })}
@@ -209,3 +258,4 @@ export default function CustomSelect({
     </div>
   )
 }
+

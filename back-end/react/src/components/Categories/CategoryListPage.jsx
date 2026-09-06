@@ -183,6 +183,15 @@ export default function CategoryListPage() {
     }))
   }
 
+  const getCsrfToken = () => {
+    if (ctx?.csrfToken) return ctx.csrfToken
+    if (window.DJANGO_CONTEXT?.csrfToken) return window.DJANGO_CONTEXT.csrfToken
+    const tokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]')
+    if (tokenInput?.value) return tokenInput.value
+    const cookieMatch = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/)
+    return cookieMatch ? decodeURIComponent(cookieMatch[1]) : ''
+  }
+
   const handleSaveEditCategory = async () => {
     if (!editTarget) return
     const name = editCategoryName.trim()
@@ -197,7 +206,7 @@ export default function CategoryListPage() {
     setEditFormSuccess('')
 
     try {
-      const csrfToken = ctx.csrfToken || ''
+      const csrfToken = getCsrfToken()
       const payload = {
         name,
         is_active: editIsActive,
@@ -219,28 +228,34 @@ export default function CategoryListPage() {
         body: JSON.stringify(payload),
       })
 
-      const data = await response.json()
+      let data = {}
+      try {
+        data = await response.json()
+      } catch {
+        data = {}
+      }
 
       if (!response.ok) {
-        setEditFormError(data.error || 'Something went wrong. Please try again.')
-        setEditFormLoading(false)
+        const errorMsg = data.error || data.detail || (typeof data === 'object' && Object.values(data).flat().join(' ')) || 'Something went wrong. Please try again.'
+        setEditFormError(errorMsg)
         return
       }
 
-      const updatedCat = data.category
+      const updatedCat = data.category || data
+      const updatedSubs = Array.isArray(updatedCat.subcategories) ? updatedCat.subcategories : []
       setDynamicList(prev => prev.map(item => {
         if (String(item.id) === String(editTarget.id)) {
           return {
             ...item,
             name: updatedCat.name,
             slug: updatedCat.slug,
-            isActive: updatedCat.is_active,
-            subcategoriesCount: updatedCat.subcategoriesCount,
-            subcategories: updatedCat.subcategories.map(s => ({
+            isActive: updatedCat.is_active !== undefined ? updatedCat.is_active : (updatedCat.isActive !== undefined ? updatedCat.isActive : true),
+            subcategoriesCount: updatedSubs.length,
+            subcategories: updatedSubs.map(s => ({
               id: s.id,
               name: s.name,
               slug: s.slug,
-              isActive: s.is_active,
+              isActive: s.is_active !== undefined ? s.is_active : (s.isActive !== undefined ? s.isActive : true),
             })),
           }
         }
@@ -254,7 +269,8 @@ export default function CategoryListPage() {
         setEditTarget(null)
         setEditFormSuccess('')
       }, 1500)
-    } catch {
+    } catch (err) {
+      console.error('Error updating category:', err)
       setEditFormError('Network error. Please check your connection and try again.')
     } finally {
       setEditFormLoading(false)
@@ -311,7 +327,7 @@ export default function CategoryListPage() {
     setFormSuccess('')
 
     try {
-      const csrfToken = ctx.csrfToken || ''
+      const csrfToken = getCsrfToken()
       const response = await fetch('/api/categories/', {
         method: 'POST',
         headers: {
@@ -322,21 +338,29 @@ export default function CategoryListPage() {
         body: JSON.stringify({ name }),
       })
 
-      const data = await response.json()
+      let data = {}
+      try {
+        data = await response.json()
+      } catch {
+        data = {}
+      }
 
       if (!response.ok) {
-        setFormError(data.error || 'Something went wrong. Please try again.')
-        setFormLoading(false)
+        const errorMsg = data.error || data.detail || (typeof data === 'object' && Object.values(data).flat().join(' ')) || 'Something went wrong. Please try again.'
+        setFormError(errorMsg)
         return
       }
 
-      // Success — prepend new category to the list
+      // Success — prepend new category to the list safely handling both wrapped and direct JSON
+      const catObj = data.category || data
+      const catSubs = Array.isArray(catObj.subcategories) ? catObj.subcategories : []
       const newItem = {
-        id: String(data.category.id),
-        name: data.category.name,
-        slug: data.category.slug,
-        isActive: data.category.is_active,
-        subcategoriesCount: 0,
+        id: String(catObj.id),
+        name: catObj.name,
+        slug: catObj.slug || catObj.name.toLowerCase().replace(/\s+/g, '-'),
+        isActive: catObj.is_active !== undefined ? catObj.is_active : (catObj.isActive !== undefined ? catObj.isActive : true),
+        subcategoriesCount: catSubs.length,
+        subcategories: catSubs,
         productsCount: 0,
       }
       setDynamicList(prev => [newItem, ...prev])
@@ -344,12 +368,13 @@ export default function CategoryListPage() {
       setFormSuccess('Category added successfully.')
       setNewCategoryName('')
 
-      // Auto-hide the form and success message after 2.5s
+      // Auto-hide the form and success message after 1.8s
       setTimeout(() => {
         setShowAddForm(false)
         setFormSuccess('')
-      }, 2500)
-    } catch {
+      }, 1800)
+    } catch (err) {
+      console.error('Error adding category:', err)
       setFormError('Network error. Please check your connection and try again.')
     } finally {
       setFormLoading(false)
@@ -383,7 +408,7 @@ export default function CategoryListPage() {
     setSubFormSuccess('')
 
     try {
-      const csrfToken = ctx.csrfToken || ''
+      const csrfToken = getCsrfToken()
       const response = await fetch('/api/subcategories/', {
         method: 'POST',
         headers: {
@@ -397,21 +422,27 @@ export default function CategoryListPage() {
         }),
       })
 
-      const data = await response.json()
+      let data = {}
+      try {
+        data = await response.json()
+      } catch {
+        data = {}
+      }
 
       if (!response.ok) {
-        setSubFormError(data.error || 'Something went wrong. Please try again.')
-        setSubFormLoading(false)
+        const errorMsg = data.error || data.detail || (typeof data === 'object' && Object.values(data).flat().join(' ')) || 'Something went wrong. Please try again.'
+        setSubFormError(errorMsg)
         return
       }
 
-      // Success — increment subcategory count & add new subcategory item in dynamicList
-      const newSubObj = data.subcategory ? {
-        id: data.subcategory.id,
-        name: data.subcategory.name,
-        slug: data.subcategory.slug,
-        isActive: data.subcategory.is_active !== undefined ? data.subcategory.is_active : true,
-      } : { name }
+      // Success — increment subcategory count & add new subcategory item in dynamicList safely
+      const subObj = data.subcategory || data
+      const newSubObj = {
+        id: subObj.id,
+        name: subObj.name || name,
+        slug: subObj.slug || (subObj.name || name).toLowerCase().replace(/\s+/g, '-'),
+        isActive: subObj.is_active !== undefined ? subObj.is_active : (subObj.isActive !== undefined ? subObj.isActive : true),
+      }
 
       setDynamicList(prev => prev.map(cat => {
         if (String(cat.id) === String(selectedCategoryId)) {
@@ -424,8 +455,19 @@ export default function CategoryListPage() {
         }
         return cat
       }))
-    } catch {
-      setSubFormError('Network error. Please try again.')
+
+      setSubFormSuccess('Subcategory added successfully.')
+      setNewSubcategoryName('')
+
+      // Auto-hide the subcategory form and success message after 1.8s
+      setTimeout(() => {
+        setShowAddSubForm(false)
+        setSubFormSuccess('')
+      }, 1800)
+    } catch (err) {
+      console.error('Error adding subcategory:', err)
+      setSubFormError('Network error. Please check your connection and try again.')
+    } finally {
       setSubFormLoading(false)
     }
   }
@@ -435,7 +477,7 @@ export default function CategoryListPage() {
       {/* Header Row */}
       <div className="category-header-row">
         <div className="category-title-group">
-          <h1>Categories</h1>
+          <h1>Category Management</h1>
           <p>Manage product categories and subcategories</p>
         </div>
         <div className="category-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -517,16 +559,16 @@ export default function CategoryListPage() {
       <div className="category-table-card">
         {/* Table Filter Bar */}
         <div className="table-filter-bar">
-          <div className="products-search-box category-search-box">
-            <span className="products-search-icon">
-              <AppIcon icon={SearchIcon} size={17} />
+          <div className="category-search-box">
+            <span className="category-search-icon">
+              <AppIcon icon={SearchIcon} size={16} />
             </span>
             <input
               type="text"
               placeholder="Search category name..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className="products-search-input"
+              className="category-search-input"
             />
           </div>
 
@@ -538,6 +580,7 @@ export default function CategoryListPage() {
               { value: 'active', label: 'Active Only' },
               { value: 'inactive', label: 'Inactive Only' }
             ]}
+            height="38px"
             minWidth="145px"
           />
         </div>
@@ -1313,7 +1356,7 @@ export default function CategoryListPage() {
               <button type="button" onClick={async () => {
                 const target = deleteTarget
                 setDeleteTarget(null)
-                const csrfToken = ctx.csrfToken || ''
+                const csrfToken = getCsrfToken()
                 try {
                   const res = await fetch(`/api/categories/${target.id}/`, {
                     method: 'DELETE',

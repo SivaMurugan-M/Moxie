@@ -16,7 +16,7 @@ function NavMenu() {
   const { wishlistCount } = useContext(WishlistContext);
   const { cartCount } = useContext(CartContext);
   const { user, isLoggedIn, logout } = useContext(AuthContext);
-  const { categories } = useData();
+  const { categories, storeSettings } = useData();
   const { openLogin } = useModal();
   const navigate = useNavigate();
 
@@ -120,15 +120,17 @@ function NavMenu() {
       </div>
 
       {/* Wishlist Nav Item with Dynamic Notification Badge */}
-      <Link to="/wishlist" className="nav-item" style={{ textDecoration: "none", color: "inherit" }}>
-        <div className="wishlist-icon-wrapper">
-          <img src={WishlistIcon} alt="Wishlist" />
-          {wishlistCount > 0 && (
-            <span className="wishlist-badge">{wishlistCount}</span>
-          )}
-        </div>
-        <span>WISHLIST</span>
-      </Link>
+      {storeSettings?.allow_wishlist !== false && (
+        <Link to="/wishlist" className="nav-item" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="wishlist-icon-wrapper">
+            <img src={WishlistIcon} alt="Wishlist" />
+            {wishlistCount > 0 && (
+              <span className="wishlist-badge">{wishlistCount}</span>
+            )}
+          </div>
+          <span>WISHLIST</span>
+        </Link>
+      )}
 
       {/* Cart Nav Item with Dynamic Notification Badge */}
       <Link to="/cart" className="nav-item" style={{ textDecoration: "none", color: "inherit" }}>

@@ -1,7 +1,9 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import { AuthContext } from "../../context/AuthContext";
+import { useData } from "../../context/DataContext";
+import { useModal } from "../../context/ModalContext";
 import { orderService } from "../../services/orderService";
 import { API_URL } from "../../config";
 import "./Checkout.css";
@@ -23,14 +25,41 @@ const getFallbackImage = (category, name) => {
 export default function Checkout() {
   const { cart, clearCart } = useContext(CartContext);
   const { user } = useContext(AuthContext);
+  const { storeSettings, refreshSettings } = useData();
+  const { openLogin } = useModal();
   const location = useLocation();
   const checkoutItem = location.state?.checkoutItem;
   
+  const isCodAvailable = storeSettings ? (storeSettings.cod_available !== false && storeSettings.cod_enabled !== false) : true;
+  const isOnlinePaymentAvailable = storeSettings ? (storeSettings.online_payment_enabled !== false && storeSettings.razorpay_enabled !== false) : true;
+  const enableTax = Boolean(storeSettings?.enable_tax);
+  const taxRate = enableTax ? (parseFloat(storeSettings?.tax_rate) || 0) : 0;
+  const taxIncluded = enableTax ? Boolean(storeSettings?.tax_included) : false;
+  const taxType = storeSettings?.tax_type || "GST";
+
   const [payment, setPayment] = useState("razorpay");
   const [placed, setPlaced] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+
+  // Refresh store settings on mount to ensure fresh COD & Tax availability
+  useEffect(() => {
+    if (refreshSettings) {
+      refreshSettings();
+    }
+  }, []);
+
+  // Ensure selected payment is valid if COD becomes unavailable
+  useEffect(() => {
+    if (!isCodAvailable && payment === "cod") {
+      setPayment(isOnlinePaymentAvailable ? "razorpay" : "");
+    } else if (!payment && isOnlinePaymentAvailable) {
+      setPayment("razorpay");
+    } else if (!payment && isCodAvailable) {
+      setPayment("cod");
+    }
+  }, [isCodAvailable, isOnlinePaymentAvailable, payment]);
 
   // Use the direct checkoutItem if present, otherwise fallback to the cart list
   const checkoutList = checkoutItem ? [checkoutItem] : cart;
@@ -40,7 +69,29 @@ export default function Checkout() {
   
   // Dynamic Delivery Fee: Rs. 100 for COD Promise Fee, FREE for Online Payment
   const delivery = payment === "cod" ? 100 : 0;
-  const grandTotal = subtotal + delivery;
+
+  let taxAmount = 0;
+  let grandTotal = subtotal + delivery;
+
+  if (enableTax && taxRate > 0) {
+    if (taxIncluded) {
+      // Inclusive: gross price includes tax
+      taxAmount = Math.round((subtotal * taxRate / (100 + taxRate)) * 100) / 100;
+      grandTotal = subtotal + delivery;
+    } else {
+      // Exclusive: tax added on top of subtotal
+      taxAmount = Math.round((subtotal * taxRate / 100) * 100) / 100;
+      grandTotal = subtotal + taxAmount + delivery;
+    }
+  }
+
+  const paymentOptions = [];
+  if (isOnlinePaymentAvailable) {
+    paymentOptions.push(["razorpay", "Razorpay (UPI / Card / NetBanking)"]);
+  }
+  if (isCodAvailable) {
+    paymentOptions.push(["cod", "Cash on Delivery"]);
+  }
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -81,35 +132,98 @@ export default function Checkout() {
     setPaymentError("");
 
     if (!Object.keys(next).length) {
+      if (storeSettings?.require_login_before_checkout && !user) {
+        setPaymentError("You must sign in to your account before completing checkout.");
+        if (openLogin) openLogin();
+        return;
+      }
+
+      const minAmount = parseFloat(storeSettings?.min_order_amount) || 0;
+      const maxAmount = parseFloat(storeSettings?.max_order_amount) || 0;
+
+      if (minAmount > 0 && subtotal < minAmount) {
+        setPaymentError(`Minimum order amount of ₹${minAmount.toLocaleString()} is required. Your current cart subtotal is ₹${subtotal.toLocaleString()}.`);
+        return;
+      }
+
+      if (maxAmount > 0 && subtotal > maxAmount) {
+        setPaymentError(`Maximum order amount allowed is ₹${maxAmount.toLocaleString()}. Your current cart subtotal is ₹${subtotal.toLocaleString()}.`);
+        return;
+      }
+
       if (payment === "cod") {
-        if (user?.email) {
-          const firstItem = checkoutList[0] || {};
-          orderService.placeOrder(user.email, {
-            name: checkoutList.length > 1 ? `${firstItem.name} + ${checkoutList.length - 1} more items` : firstItem.name,
-            image: firstItem.image,
-            variant: firstItem.selectedSize ? `Size: ${firstItem.selectedSize}` : "",
-            quantity: checkoutList.reduce((acc, i) => acc + i.quantity, 0),
-            price: firstItem.price || 0,
-            subtotal: subtotal,
-            discount: mrp - subtotal,
-            shippingCharge: delivery,
-            total: grandTotal,
-            paymentStatus: "Pending (COD)",
-            paymentMethod: "Cash on Delivery",
-            shippingAddress: {
-              name: shippingData.shipping_name,
-              phone: shippingData.shipping_phone,
-              flat: shippingData.shipping_address,
-              city: shippingData.shipping_city,
-              pincode: shippingData.shipping_pincode,
-            }
+        if (!isCodAvailable) {
+          setPaymentError("Cash on Delivery is currently unavailable.");
+          return;
+        }
+
+        setLoading(true);
+        try {
+          const orderItems = checkoutList.map(item => ({
+            product_id: item.id,
+            variant_id: item.selectedVariant ? item.selectedVariant.id : undefined,
+            color_name: item.selectedVariant ? item.selectedVariant.color_name : undefined,
+            size: item.selectedSize || undefined,
+            quantity: item.quantity
+          }));
+
+          const codRes = await fetch(`${API_URL}/payment/order/cod/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              ...shippingData,
+              items: orderItems,
+              payment_method: "cod"
+            })
           });
+
+          if (!codRes.ok) {
+            const errData = await codRes.json();
+            throw new Error(errData.error || "Failed to place COD order.");
+          }
+
+          const codData = await codRes.json();
+
+          if (user?.email) {
+            const firstItem = checkoutList[0] || {};
+            orderService.placeOrder(user.email, {
+              id: codData.order_number,
+              name: checkoutList.length > 1 ? `${firstItem.name} + ${checkoutList.length - 1} more items` : firstItem.name,
+              image: firstItem.image,
+              variant: firstItem.selectedSize ? `Size: ${firstItem.selectedSize}` : "",
+              quantity: checkoutList.reduce((acc, i) => acc + i.quantity, 0),
+              price: firstItem.price || 0,
+              subtotal: subtotal,
+              discount: mrp - subtotal,
+              shippingCharge: delivery,
+              tax: taxAmount,
+              taxRate: taxRate,
+              taxType: taxType,
+              taxIncluded: taxIncluded,
+              total: grandTotal,
+              paymentStatus: "Pending (COD)",
+              paymentMethod: "Cash on Delivery",
+              shippingAddress: {
+                name: shippingData.shipping_name,
+                phone: shippingData.shipping_phone,
+                flat: shippingData.shipping_address,
+                city: shippingData.shipping_city,
+                pincode: shippingData.shipping_pincode,
+              }
+            });
+          }
+          if (!checkoutItem) {
+            clearCart();
+          }
+          setPlaced(true);
+          window.scrollTo(0, 0);
+        } catch (err) {
+          setPaymentError(err.message || "An error occurred while placing COD order.");
+        } finally {
+          setLoading(false);
         }
-        if (!checkoutItem) {
-          clearCart();
-        }
-        setPlaced(true);
-        window.scrollTo(0, 0);
         return;
       }
 
@@ -125,6 +239,9 @@ export default function Checkout() {
       try {
         const orderItems = checkoutList.map(item => ({
           product_id: item.id,
+          variant_id: item.selectedVariant ? item.selectedVariant.id : undefined,
+          color_name: item.selectedVariant ? item.selectedVariant.color_name : undefined,
+          size: item.selectedSize || undefined,
           quantity: item.quantity
         }));
 
@@ -174,6 +291,34 @@ export default function Checkout() {
               }
 
               // Success! Clear cart and show placed order success page
+              if (user?.email) {
+                const firstItem = checkoutList[0] || {};
+                orderService.placeOrder(user.email, {
+                  id: orderInfo.order_number || `MOX-${Date.now().toString().slice(-4)}`,
+                  name: checkoutList.length > 1 ? `${firstItem.name} + ${checkoutList.length - 1} more items` : firstItem.name,
+                  image: firstItem.image,
+                  variant: firstItem.selectedSize ? `Size: ${firstItem.selectedSize}` : "",
+                  quantity: checkoutList.reduce((acc, i) => acc + i.quantity, 0),
+                  price: firstItem.price || 0,
+                  subtotal: subtotal,
+                  discount: mrp - subtotal,
+                  shippingCharge: delivery,
+                  tax: taxAmount,
+                  taxRate: taxRate,
+                  taxType: taxType,
+                  taxIncluded: taxIncluded,
+                  total: grandTotal,
+                  paymentStatus: "Paid",
+                  paymentMethod: "Razorpay",
+                  shippingAddress: {
+                    name: shippingData.shipping_name,
+                    phone: shippingData.shipping_phone,
+                    flat: shippingData.shipping_address,
+                    city: shippingData.shipping_city,
+                    pincode: shippingData.shipping_pincode,
+                  }
+                });
+              }
               if (!checkoutItem) {
                 clearCart();
               }
@@ -239,6 +384,40 @@ export default function Checkout() {
     <main className="checkout-page page-shell">
       <span className="eyebrow">Secure checkout</span>
       <h1>Complete your order</h1>
+      {storeSettings?.require_login_before_checkout && !user && (
+        <div style={{
+          background: "#fffbeb",
+          border: "1px solid #fde68a",
+          borderRadius: "8px",
+          padding: "14px 18px",
+          marginBottom: "20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "10px"
+        }}>
+          <span style={{ color: "#92400e", fontSize: "14px", fontWeight: "500" }}>
+            🔒 You must be signed in to complete this order.
+          </span>
+          <button
+            type="button"
+            onClick={openLogin}
+            style={{
+              background: "#d97706",
+              color: "#fff",
+              border: "none",
+              padding: "6px 14px",
+              borderRadius: "6px",
+              fontWeight: "600",
+              cursor: "pointer",
+              fontSize: "13px"
+            }}
+          >
+            Sign In Now
+          </button>
+        </div>
+      )}
       <form className="checkout-layout" onSubmit={place}>
         <div className="checkout-main">
           <section className="checkout-card">
@@ -262,27 +441,32 @@ export default function Checkout() {
 
           <section className="checkout-card">
             <h2>Payment method</h2>
-            <div className="payment-options">
-              {[
-                ["razorpay", "Razorpay (UPI / Card / NetBanking)"],
-                ["cod", "Cash on Delivery"],
-              ].map(([id, title]) => (
-                <label key={id} className={payment === id ? "selected" : ""}>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={payment === id}
-                    onChange={() => setPayment(id)}
-                  />
-                  <b>{title}</b>
-                </label>
-              ))}
-            </div>
-            <p className="mock-note">
-              {payment === "razorpay" 
-                ? "Razorpay Test Mode is active. Do not make real payments." 
-                : "Cash on Delivery mock checkout."}
-            </p>
+            {paymentOptions.length > 0 ? (
+              <div className="payment-options">
+                {paymentOptions.map(([id, title]) => (
+                  <label key={id} className={payment === id ? "selected" : ""}>
+                    <input
+                      type="radio"
+                      name="payment"
+                      checked={payment === id}
+                      onChange={() => setPayment(id)}
+                    />
+                    <b>{title}</b>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: "#ef4444", fontSize: "14px", margin: "14px 0", fontWeight: "600" }}>
+                No payment method is currently available.
+              </p>
+            )}
+            {paymentOptions.length > 0 && (
+              <p className="mock-note">
+                {payment === "razorpay" 
+                  ? "Razorpay Test Mode is active. Do not make real payments." 
+                  : "Cash on Delivery mock checkout."}
+              </p>
+            )}
           </section>
         </div>
 
@@ -317,10 +501,20 @@ export default function Checkout() {
               <dt>MRP</dt>
               <dd>₹{mrp.toLocaleString("en-IN")}</dd>
             </div>
-            <div>
-              <dt>Discount</dt>
-              <dd>−₹{(mrp - subtotal).toLocaleString("en-IN")}</dd>
-            </div>
+            {mrp > subtotal && (
+              <div>
+                <dt>Discount</dt>
+                <dd>−₹{(mrp - subtotal).toLocaleString("en-IN")}</dd>
+              </div>
+            )}
+            {enableTax && taxRate > 0 && (
+              <div>
+                <dt>{taxIncluded ? `Includes ${taxType} (${taxRate}%)` : `${taxType} (${taxRate}%)`}</dt>
+                <dd style={{ color: taxIncluded ? "#64748b" : "#0f172a" }}>
+                  {taxIncluded ? `₹${taxAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `+₹${taxAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                </dd>
+              </div>
+            )}
             <div>
               <dt>{payment === "cod" ? "COD Promise Fee" : "Delivery"}</dt>
               <dd style={{ color: payment === "cod" ? "#111" : "#16a34a" }}>
@@ -329,11 +523,11 @@ export default function Checkout() {
             </div>
             <div className="summary-total">
               <dt>Total</dt>
-              <dd>₹{grandTotal.toLocaleString("en-IN")}</dd>
+              <dd>₹{grandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</dd>
             </div>
           </dl>
-          <button className="primary-btn" disabled={loading}>
-            {loading ? "Processing..." : payment === "razorpay" ? "Pay now" : "Place mock order"}
+          <button className="primary-btn" disabled={loading || paymentOptions.length === 0}>
+            {loading ? "Processing..." : paymentOptions.length === 0 ? "No payment method available" : payment === "razorpay" ? "Pay now" : "Place COD order"}
           </button>
           {paymentError && (
             <p style={{ color: "#ef4444", fontSize: "12px", marginTop: "12px", textAlign: "center", fontWeight: "600" }}>

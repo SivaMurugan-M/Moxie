@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import { WishlistContext } from "../../context/WishlistContext";
 import { useToast } from "../../context/ToastContext";
+import { getSaleState, getSaleStateLabel } from "../../utils/inventory";
 import "./ProductCard.css";
 
 import watchImg from "../../assets/images/watch1.png";
@@ -27,6 +28,10 @@ export default function ProductCard({ product }) {
   const inCart = cart.some((item) => item.id === product.id);
   const wished = isInWishlist(product.id);
 
+  const saleState = getSaleState(product);
+  const isAvailable = saleState === "in_stock";
+  const stateLabel = getSaleStateLabel(saleState);
+
   const wishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -37,7 +42,7 @@ export default function ProductCard({ product }) {
   const add = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!product.stock) return;
+    if (!isAvailable) return;
     addToCart(product);
     toast(`${product.name} added to cart`);
   };
@@ -75,27 +80,23 @@ export default function ProductCard({ product }) {
             <span>({product.reviewCount})</span>
           </div>
           <div className="price-row">
-            <strong>₹{product.price.toLocaleString("en-IN")}</strong>
+            <strong>₹{Number(product.price).toLocaleString("en-IN")}</strong>
             {product.oldPrice && (
-              <del>₹{product.oldPrice.toLocaleString("en-IN")}</del>
+              <del>₹{Number(product.oldPrice).toLocaleString("en-IN")}</del>
             )}
           </div>
-          <span
-            className={`stock-status ${
-              product.stock ? "available" : "unavailable"
-            }`}
-          >
-            {product.stock ? "In stock" : "Out of stock"}
+          <span className={`stock-status ${saleState}`}>
+            ● {stateLabel}
           </span>
         </div>
       </Link>
       <button
-        className={`add-cart-button ${inCart ? "added" : ""}`}
-        disabled={!product.stock}
+        className={`add-cart-button ${inCart && isAvailable ? "added" : ""} ${!isAvailable ? "disabled-btn" : ""}`}
+        disabled={!isAvailable}
         onClick={add}
       >
-        {!product.stock
-          ? "Unavailable"
+        {!isAvailable
+          ? stateLabel
           : inCart
           ? "Add another"
           : "Add to cart"}

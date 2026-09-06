@@ -1,6 +1,9 @@
 import React from "react";
 
-export default function MyOrders({ orders, onViewDetails, onTrackOrder, onCancelOrder }) {
+export default function MyOrders({ orders, storeSettings, onViewDetails, onTrackOrder, onCancelOrder }) {
+  const allowCancellation = storeSettings ? storeSettings.allow_order_cancellation !== false : true;
+  const enableTracking = storeSettings ? storeSettings.enable_order_tracking !== false : true;
+
   const getStatusBadgeClass = (status) => {
     switch (status.toLowerCase()) {
       case "placed": return "status-placed";
@@ -84,7 +87,7 @@ export default function MyOrders({ orders, onViewDetails, onTrackOrder, onCancel
                   📄 View Details
                 </button>
                 
-                {order.status.toLowerCase() !== "cancelled" && (
+                {enableTracking && order.status.toLowerCase() !== "cancelled" && (
                   <button
                     className="secondary-btn btn-sm"
                     onClick={() => onTrackOrder(order)}
@@ -93,7 +96,7 @@ export default function MyOrders({ orders, onViewDetails, onTrackOrder, onCancel
                   </button>
                 )}
 
-                {isCancellable && (
+                {allowCancellation && isCancellable && (
                   <button
                     className="secondary-btn btn-sm text-danger"
                     onClick={() => {

@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { useData } from "../../context/DataContext";
+import { useModal } from "../../context/ModalContext";
 import { profileService } from "../../services/profileService";
 import { orderService } from "../../services/orderService";
 import { addressService } from "../../services/addressService";
@@ -16,12 +18,14 @@ import AccountSecurity from "../../components/Profile/AccountSecurity";
 
 import "../../components/Profile/Profile.css";
 
-export default function ProfilePage() {
+export default function ProfilePage({ defaultTab = "profile" }) {
   const { user, logout } = useContext(AuthContext);
+  const { storeSettings } = useData();
+  const { openLogin } = useModal();
   const navigate = useNavigate();
 
   // Tab State
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   // Data States
@@ -30,12 +34,12 @@ export default function ProfilePage() {
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Redirect to home if user session is not found
+  // Update active tab when defaultTab prop changes
   useEffect(() => {
-    if (!user) {
-      navigate("/");
+    if (defaultTab) {
+      setActiveTab(defaultTab);
     }
-  }, [user, navigate]);
+  }, [defaultTab]);
 
   // Load user data dynamically
   useEffect(() => {
@@ -156,6 +160,7 @@ export default function ProfilePage() {
         return (
           <MyOrders
             orders={orders}
+            storeSettings={storeSettings}
             onViewDetails={handleViewOrderDetails}
             onTrackOrder={handleTrackOrder}
             onCancelOrder={handleCancelOrder}
@@ -181,6 +186,20 @@ export default function ProfilePage() {
         return <ProfileDetails profile={profile} onUpdate={handleUpdateProfile} />;
     }
   };
+
+  if (!user) {
+    return (
+      <main className="container page-shell" style={{ maxWidth: "600px", margin: "60px auto", textAlign: "center", padding: "40px 20px" }}>
+        <div style={{ fontSize: "56px", marginBottom: "16px" }}>🔒</div>
+        <h2 style={{ fontFamily: "Outfit, sans-serif", fontWeight: "700", marginBottom: "12px" }}>Sign In to View Your Account</h2>
+        <p style={{ color: "#666", marginBottom: "24px", fontSize: "15px" }}>Access your orders, track shipments, manage saved addresses and account settings.</p>
+        <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+          <button type="button" className="btn btn-warning rounded-pill px-4 py-2 fw-bold" onClick={openLogin}>Sign In</button>
+          <Link to="/register" className="btn btn-outline-dark rounded-pill px-4 py-2 fw-bold">Create Account</Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="profile-page-container container page-shell">

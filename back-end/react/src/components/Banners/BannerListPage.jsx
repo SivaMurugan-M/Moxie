@@ -55,7 +55,8 @@ export default function BannerListPage() {
   const totalBanners = dynamicList.length
   const activeBanners = dynamicList.filter(i => i.isActive).length
   const inactiveBanners = dynamicList.filter(i => !i.isActive).length
-  const totalClicks = (dynamicList.length > 0 ? dynamicList.length * 485 + 248 : 2458).toLocaleString('en-IN')
+  const totalClicksCount = dynamicList.reduce((acc, item) => acc + (parseInt(item.clickCount ?? item.click_count ?? 0, 10) || 0), 0)
+  const totalClicks = totalClicksCount.toLocaleString('en-IN')
 
   const showToast = (title, msg, isError = false) => {
     const toast = document.getElementById('moxie-toast')
@@ -159,15 +160,17 @@ export default function BannerListPage() {
         return
       }
 
+      const bannerObj = data.banner || data || {}
       const newBanner = {
-        id: data.banner?.id || String(Date.now()),
-        title: data.banner?.title || bName,
-        subtitle: data.banner?.subtitle || 'Website slider banner',
-        imageUrl: data.banner?.imageUrl || filePreviewUrl,
-        buttonText: data.banner?.buttonText || bName,
-        buttonLink: data.banner?.buttonLink || '/products/watches',
-        displayOrder: data.banner?.displayOrder || (dynamicList.length + 1),
-        isActive: data.banner?.isActive !== undefined ? data.banner.isActive : true,
+        id: bannerObj.id || String(Date.now()),
+        title: bannerObj.title || bName,
+        subtitle: bannerObj.subtitle || 'Website slider banner',
+        imageUrl: bannerObj.image || bannerObj.imageUrl || filePreviewUrl,
+        buttonText: bannerObj.button_text || bannerObj.buttonText || bName,
+        buttonLink: bannerObj.button_link || bannerObj.buttonLink || '/products/watches',
+        displayOrder: bannerObj.display_order ?? bannerObj.displayOrder ?? (dynamicList.length + 1),
+        clickCount: 0,
+        isActive: bannerObj.is_active !== undefined ? bannerObj.is_active : (bannerObj.isActive !== undefined ? bannerObj.isActive : true),
       }
 
       setDynamicList(prev => [newBanner, ...prev])
@@ -228,6 +231,15 @@ export default function BannerListPage() {
     setEditFilePreviewUrl(previewUrl)
   }
 
+  const getCsrfToken = () => {
+    if (ctx?.csrfToken) return ctx.csrfToken
+    if (window.DJANGO_CONTEXT?.csrfToken) return window.DJANGO_CONTEXT.csrfToken
+    const tokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]')
+    if (tokenInput?.value) return tokenInput.value
+    const cookieMatch = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/)
+    return cookieMatch ? decodeURIComponent(cookieMatch[1]) : ''
+  }
+
   const handleSaveEditBanner = async () => {
     if (!editTarget) return
     const bName = editButtonName.trim()
@@ -242,18 +254,18 @@ export default function BannerListPage() {
     setEditFormSuccess('')
 
     try {
-      const csrfToken = ctx.csrfToken || ''
+      const csrfToken = getCsrfToken()
       const formData = new FormData()
       formData.append('button_text', bName)
       formData.append('button_name', bName)
       formData.append('title', bName)
-      formData.append('is_active', editIsActive)
+      formData.append('is_active', editIsActive ? 'true' : 'false')
       if (editFile) {
         formData.append('image', editFile)
       }
 
       const response = await fetch(`/api/banners/${editTarget.id}/`, {
-        method: 'POST',
+        method: 'PATCH',
         headers: {
           'X-CSRFToken': csrfToken,
         },
@@ -261,23 +273,29 @@ export default function BannerListPage() {
         body: formData,
       })
 
-      const data = await response.json().catch(() => ({}))
+      let data = {}
+      try {
+        data = await response.json()
+      } catch {
+        data = {}
+      }
 
       if (!response.ok) {
-        setEditFormError(data.error || 'Something went wrong. Please try again.')
+        const errorMsg = data.error || data.detail || (typeof data === 'object' && Object.values(data).flat().join(' ')) || 'Something went wrong. Please try again.'
+        setEditFormError(errorMsg)
         setEditFormLoading(false)
         return
       }
 
-      const updatedBanner = data.banner
+      const updatedBanner = data.banner || data
       setDynamicList(prev => prev.map(b => {
         if (String(b.id) === String(editTarget.id)) {
           return {
             ...b,
-            title: updatedBanner.title,
-            imageUrl: updatedBanner.imageUrl || b.imageUrl,
-            buttonText: updatedBanner.buttonText,
-            isActive: updatedBanner.isActive,
+            title: updatedBanner.title || bName,
+            imageUrl: updatedBanner.image || updatedBanner.imageUrl || b.imageUrl,
+            buttonText: updatedBanner.button_text || updatedBanner.buttonText || bName,
+            isActive: updatedBanner.is_active !== undefined ? updatedBanner.is_active : (updatedBanner.isActive !== undefined ? updatedBanner.isActive : editIsActive),
           }
         }
         return b
@@ -297,11 +315,11 @@ export default function BannerListPage() {
     }
   }
 
-  // Process banner items with display positions and simulated click counts if needed
+  // Process banner items with display positions and real click counts
   const enrichedList = useMemo(() => {
     return dynamicList.map((item, idx) => {
       const position = POSITIONS[idx % POSITIONS.length]
-      const clicks = item.displayOrder ? (item.displayOrder * 340 + 112) : (1245 - idx * 280)
+      const clicks = parseInt(item.clickCount ?? item.click_count ?? 0, 10) || 0
       return {
         ...item,
         position: item.buttonText ? `Home - ${item.buttonText}` : position,
@@ -410,13 +428,16 @@ export default function BannerListPage() {
       <div className="banner-table-card">
         {/* Table Filter Bar */}
         <div className="table-filter-bar">
-          <div className="search-input-wrapper">
-            <AppIcon icon={SearchIcon} size={16} />
+          <div className="banner-search-box">
+            <span className="banner-search-icon">
+              <AppIcon icon={SearchIcon} size={16} />
+            </span>
             <input
               type="text"
               placeholder="Search banner title..."
               value={searchTerm}
               onChange={handleSearchChange}
+              className="banner-search-input"
             />
           </div>
 
@@ -428,6 +449,7 @@ export default function BannerListPage() {
               { value: 'active', label: 'Active Only' },
               { value: 'inactive', label: 'Inactive Only' }
             ]}
+            height="38px"
             minWidth="145px"
           />
         </div>

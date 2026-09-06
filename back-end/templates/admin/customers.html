@@ -10,7 +10,7 @@
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-    <a href="{% url 'admin:index' %}">Dashboard</a>
+    <a href="{{ first_allowed_url|default:'/admin/dashboard/' }}">Dashboard</a>
     <span class="breadcrumb-separator">&rsaquo;</span>
     <span class="current-page">Customers</span>
 </div>
@@ -35,9 +35,9 @@
                 username: "{{ c.username|escapejs }}",
                 email: "{{ c.email|escapejs }}",
                 mobile: "{{ c.mobile|escapejs }}",
-                isActive: {% if c.is_active %}true{% else %}false{% endif %},
-                lastLogin: "{{ c.last_login|escapejs }}",
-                createdAt: "{{ c.created_at|escapejs }}",
+                isActive: {% if c.isActive or c.is_active %}true{% else %}false{% endif %},
+                lastLogin: "{{ c.lastLogin|default:c.last_login|escapejs }}",
+                createdAt: "{{ c.createdAt|default:c.created_at|escapejs }}",
                 ordersCount: parseInt("{{ c.orders_count|default:0 }}"),
                 completedOrdersCount: parseInt("{{ c.completed_orders_count|default:0 }}"),
                 totalSpent: parseFloat("{{ c.total_spent|default:0 }}"),

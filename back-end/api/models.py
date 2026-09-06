@@ -31,12 +31,19 @@ class Order(models.Model):
     shipping_pincode = models.CharField(max_length=20)
 
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    tax_type = models.CharField(max_length=50, default='GST', blank=True, null=True)
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    tax_included = models.BooleanField(default=False)
     payment_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     order_status = models.CharField(max_length=30, choices=ORDER_STATUS_CHOICES, default='Pending')
 
     razorpay_order_id = models.CharField(max_length=255, unique=True)
     razorpay_payment_id = models.CharField(max_length=255, null=True, blank=True)
     razorpay_signature = models.CharField(max_length=255, null=True, blank=True)
+    order_number = models.CharField(max_length=50, null=True, blank=True)
     stock_decremented = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -166,6 +173,7 @@ class Notification(models.Model):
         ('order', 'New Order'),
         ('order_status', 'Order Status Change'),
         ('review', 'New Product Review'),
+        ('offer', 'Promotional Offer'),
         ('low_stock', 'Low Stock'),
         ('out_of_stock', 'Out of Stock'),
         ('product_created', 'Product Added'),

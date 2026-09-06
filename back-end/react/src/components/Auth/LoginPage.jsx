@@ -27,7 +27,7 @@ export default function LoginPage() {
   }, [])
 
   const csrfToken = (window.DJANGO_CONTEXT && window.DJANGO_CONTEXT.csrfToken) || ''
-  const nextUrl = (window.DJANGO_CONTEXT && window.DJANGO_CONTEXT.nextUrl) || '/admin/'
+  const nextUrl = (window.DJANGO_CONTEXT && window.DJANGO_CONTEXT.nextUrl) || '/admin/dashboard/'
 
   return (
     <div className="login-container">
@@ -40,7 +40,7 @@ export default function LoginPage() {
         {/* Errors Container */}
         <div id="dest-login-errors"></div>
 
-        <form action="" method="post" id="login-form">
+        <form action="" method="post" id="login-form" onSubmit={() => { try { sessionStorage.setItem('adminVisitActive', 'true'); } catch(e) {} }}>
           <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken} />
 
           <div className="form-group">

@@ -32,7 +32,19 @@ export default function OfferListPage() {
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  // Helper for default local ISO string (YYYY-MM-DDTHH:MM)
+  // Helper for converting any date or ISO string to datetime-local input string (YYYY-MM-DDTHH:MM)
+  const toDatetimeLocalValue = (val) => {
+    if (!val) return '';
+    try {
+      const d = new Date(val);
+      if (isNaN(d.getTime())) return '';
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    } catch {
+      return '';
+    }
+  };
+
   const getLocalDatetimeString = (dateObj) => {
     const d = dateObj || new Date();
     const pad = (n) => String(n).padStart(2, '0');
@@ -65,6 +77,61 @@ export default function OfferListPage() {
     }, 3500);
   };
 
+  // Helpers for computing offer fields if missing
+  const getOfferText = (item) => {
+    return item.offer_text || item.name || item.title || item.description || '';
+  };
+
+  const getComputedOfferStatus = (item) => {
+    const isActive = item.isActive !== undefined ? item.isActive : item.is_active;
+    if (!isActive) return 'Inactive';
+    const now = new Date();
+    if (item.end_datetime) {
+      const endD = new Date(item.end_datetime);
+      if (!isNaN(endD.getTime()) && endD <= now) return 'Expired';
+    }
+    if (item.start_datetime) {
+      const startD = new Date(item.start_datetime);
+      if (!isNaN(startD.getTime()) && startD > now) return 'Scheduled';
+    }
+    if (item.end_date && !item.end_datetime) {
+      const todayStr = getLocalDatetimeString(now).slice(0, 10);
+      if (item.end_date < todayStr) return 'Expired';
+    }
+    if (item.start_date && !item.start_datetime) {
+      const todayStr = getLocalDatetimeString(now).slice(0, 10);
+      if (item.start_date > todayStr) return 'Scheduled';
+    }
+    if (item.status && item.status !== '') return item.status;
+    return 'Active';
+  };
+
+  const getComputedSchedule = (item) => {
+    if (item.start_datetime && item.end_datetime) {
+      try {
+        const s = new Date(item.start_datetime);
+        const e = new Date(item.end_datetime);
+        if (!isNaN(s.getTime()) && !isNaN(e.getTime())) {
+          const pad = (n) => String(n).padStart(2, '0');
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const formatTime = (d) => {
+            let h = d.getHours();
+            const m = pad(d.getMinutes());
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            h = h ? pad(h) : '12';
+            return `${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()}, ${h}:${m} ${ampm}`;
+          };
+          return `From: ${formatTime(s)}\nTo: ${formatTime(e)}`;
+        }
+      } catch {
+        // fallback
+      }
+    }
+    if (item.schedule && item.schedule !== '') return item.schedule;
+    return '—';
+  };
+
   // Fetch updated list from API
   const refreshOffers = async () => {
     setLoading(true);
@@ -72,9 +139,8 @@ export default function OfferListPage() {
       const res = await fetch('/api/offers/', { headers: { 'Accept': 'application/json' } });
       if (res.ok) {
         const data = await res.json();
-        if (data.offers) {
-          setOffers(data.offers);
-        }
+        const list = Array.isArray(data) ? data : (data.offers || []);
+        setOffers(list);
       }
     } catch (err) {
       console.error('Failed to refresh offers:', err);
@@ -83,23 +149,36 @@ export default function OfferListPage() {
     }
   };
 
+  React.useEffect(() => {
+    refreshOffers();
+    // Re-evaluate statuses and refresh list periodically every 15 seconds
+    const interval = setInterval(() => {
+      setOffers(prev => [...prev]);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Stats
   const stats = useMemo(() => {
     const total = offers.length;
-    const active = offers.filter(o => o.status === 'Active').length;
-    const scheduled = offers.filter(o => o.status === 'Scheduled').length;
-    const expiredOrInactive = offers.filter(o => o.status === 'Expired' || o.status === 'Inactive').length;
+    const active = offers.filter(o => getComputedOfferStatus(o) === 'Active').length;
+    const scheduled = offers.filter(o => getComputedOfferStatus(o) === 'Scheduled').length;
+    const expiredOrInactive = offers.filter(o => {
+      const st = getComputedOfferStatus(o);
+      return st === 'Expired' || st === 'Inactive';
+    }).length;
     return { total, active, scheduled, expiredOrInactive };
   }, [offers]);
 
   // Filtered offers — search against offer_text
   const filteredOffers = useMemo(() => {
     return offers.filter(o => {
-      const text = (o.offer_text || '').toLowerCase();
+      const text = getOfferText(o).toLowerCase();
       const matchesSearch = text.includes(searchTerm.toLowerCase());
+      const st = getComputedOfferStatus(o);
       const matchesStatus =
         statusFilter === 'all' ||
-        (o.status && o.status.toLowerCase() === statusFilter.toLowerCase());
+        st.toLowerCase() === statusFilter.toLowerCase();
       return matchesSearch && matchesStatus;
     });
   }, [offers, searchTerm, statusFilter]);
@@ -122,10 +201,10 @@ export default function OfferListPage() {
   const handleOpenEditModal = async (item) => {
     setFormError('');
     setFormData({
-      offer_text: item.offer_text || '',
-      start_datetime: item.start_datetime || getLocalDatetimeString(new Date()),
-      end_datetime: item.end_datetime || getLocalDatetimeString(new Date(Date.now() + 86400000)),
-      is_active: item.isActive !== undefined ? item.isActive : true,
+      offer_text: getOfferText(item),
+      start_datetime: toDatetimeLocalValue(item.start_datetime) || getLocalDatetimeString(new Date()),
+      end_datetime: toDatetimeLocalValue(item.end_datetime) || getLocalDatetimeString(new Date(Date.now() + 86400000)),
+      is_active: item.isActive !== undefined ? item.isActive : (item.is_active !== undefined ? item.is_active : true),
     });
     setEditTarget(item);
 
@@ -136,10 +215,10 @@ export default function OfferListPage() {
       if (res.ok) {
         const data = await res.json();
         setFormData({
-          offer_text: data.offer_text || item.offer_text || '',
-          start_datetime: data.start_datetime || item.start_datetime || getLocalDatetimeString(new Date()),
-          end_datetime: data.end_datetime || item.end_datetime || getLocalDatetimeString(new Date(Date.now() + 86400000)),
-          is_active: data.isActive !== undefined ? data.isActive : true,
+          offer_text: data.offer_text || data.name || data.title || getOfferText(item),
+          start_datetime: toDatetimeLocalValue(data.start_datetime) || toDatetimeLocalValue(item.start_datetime) || getLocalDatetimeString(new Date()),
+          end_datetime: toDatetimeLocalValue(data.end_datetime) || toDatetimeLocalValue(item.end_datetime) || getLocalDatetimeString(new Date(Date.now() + 86400000)),
+          is_active: data.isActive !== undefined ? data.isActive : (data.is_active !== undefined ? data.is_active : true),
         });
       }
     } catch (err) {
@@ -189,6 +268,11 @@ export default function OfferListPage() {
       if (res.ok) {
         setShowAddModal(false);
         refreshOffers();
+        if (typeof window.refreshAdminNotifications === 'function') {
+          window.refreshAdminNotifications();
+        } else {
+          window.dispatchEvent(new CustomEvent('adminNotificationRequestRefresh'));
+        }
       } else {
         setFormError(data.error || 'Failed to create offer.');
       }
@@ -219,6 +303,11 @@ export default function OfferListPage() {
       if (res.ok) {
         setEditTarget(null);
         refreshOffers();
+        if (typeof window.refreshAdminNotifications === 'function') {
+          window.refreshAdminNotifications();
+        } else {
+          window.dispatchEvent(new CustomEvent('adminNotificationRequestRefresh'));
+        }
       } else {
         setFormError(data.error || 'Failed to update offer.');
       }
@@ -241,6 +330,11 @@ export default function OfferListPage() {
       if (res.ok) {
         setDeleteTarget(null);
         refreshOffers();
+        if (typeof window.refreshAdminNotifications === 'function') {
+          window.refreshAdminNotifications();
+        } else {
+          window.dispatchEvent(new CustomEvent('adminNotificationRequestRefresh'));
+        }
       } else {
         const data = await res.json();
         alert(data.error || 'Failed to delete offer.');
@@ -264,7 +358,7 @@ export default function OfferListPage() {
   };
 
   return (
-    <div className="offer-page-container">
+    <div className="offer-list-shell">
       {/* Toast */}
       {toastMessage && (
         <div className={`offer-toast ${toastMessage.type}`}>
@@ -280,49 +374,53 @@ export default function OfferListPage() {
         </div>
         <button className="btn-add-offer" onClick={handleOpenAddModal}>
           <AppIcon icon={PlusIcon} size={16} />
-          Add Offer
+          <span>Add Offer</span>
         </button>
       </div>
 
       {/* Stats Grid */}
       <div className="offer-stats-grid">
         <div className="offer-stat-card">
-          <div className="stat-icon-wrapper indigo">
-            <AppIcon icon={OfferAdminIcon} size={20} />
+          <div className="stat-icon-box indigo">
+            <AppIcon icon={OfferAdminIcon} size={22} />
           </div>
-          <div className="stat-details">
-            <span>Total Offers</span>
-            <h3>{stats.total}</h3>
-          </div>
-        </div>
-
-        <div className="offer-stat-card">
-          <div className="stat-icon-wrapper emerald">
-            <AppIcon icon={CheckmarkCircle01Icon} size={20} />
-          </div>
-          <div className="stat-details">
-            <span>Active Offers</span>
-            <h3>{stats.active}</h3>
+          <div className="stat-info">
+            <span className="stat-label">TOTAL OFFERS</span>
+            <span className="stat-value">{stats.total.toLocaleString('en-IN')}</span>
+            <span className="stat-sub">All created offers</span>
           </div>
         </div>
 
         <div className="offer-stat-card">
-          <div className="stat-icon-wrapper amber">
-            <AppIcon icon={ClockIcon} size={20} />
+          <div className="stat-icon-box green">
+            <AppIcon icon={CheckmarkCircle01Icon} size={22} />
           </div>
-          <div className="stat-details">
-            <span>Scheduled</span>
-            <h3>{stats.scheduled}</h3>
+          <div className="stat-info">
+            <span className="stat-label">ACTIVE OFFERS</span>
+            <span className="stat-value">{stats.active.toLocaleString('en-IN')}</span>
+            <span className="stat-sub">Currently live</span>
           </div>
         </div>
 
         <div className="offer-stat-card">
-          <div className="stat-icon-wrapper rose">
-            <AppIcon icon={CancelCircleIcon} size={20} />
+          <div className="stat-icon-box amber">
+            <AppIcon icon={ClockIcon} size={22} />
           </div>
-          <div className="stat-details">
-            <span>Expired / Inactive</span>
-            <h3>{stats.expiredOrInactive}</h3>
+          <div className="stat-info">
+            <span className="stat-label">SCHEDULED</span>
+            <span className="stat-value">{stats.scheduled.toLocaleString('en-IN')}</span>
+            <span className="stat-sub">Upcoming offers</span>
+          </div>
+        </div>
+
+        <div className="offer-stat-card">
+          <div className="stat-icon-box red">
+            <AppIcon icon={CancelCircleIcon} size={22} />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">EXPIRED / INACTIVE</span>
+            <span className="stat-value">{stats.expiredOrInactive.toLocaleString('en-IN')}</span>
+            <span className="stat-sub">Past & disabled</span>
           </div>
         </div>
       </div>
@@ -331,33 +429,33 @@ export default function OfferListPage() {
       <div className="offer-table-card">
         {/* Filter Bar */}
         <div className="offer-filter-bar">
-          <div className="search-input-wrapper">
-            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
+          <div className="offer-search-box">
+            <span className="offer-search-icon">
               <AppIcon icon={SearchIcon} size={15} />
             </span>
             <input
               type="text"
+              className="offer-search-input"
               placeholder="Search offer text..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              style={{ paddingLeft: '34px' }}
             />
           </div>
 
-          <div className="filter-select-group">
-            <CustomSelect
-              value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-              options={[
-                { value: 'all', label: 'All Status' },
-                { value: 'Active', label: 'Active' },
-                { value: 'Scheduled', label: 'Scheduled' },
-                { value: 'Expired', label: 'Expired' },
-                { value: 'Inactive', label: 'Inactive' }
-              ]}
-              minWidth="140px"
-            />
-          </div>
+          <CustomSelect
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+            options={[
+              { value: 'all', label: 'All Status' },
+              { value: 'Active', label: 'Active' },
+              { value: 'Scheduled', label: 'Scheduled' },
+              { value: 'Expired', label: 'Expired' },
+              { value: 'Inactive', label: 'Inactive' }
+            ]}
+            height="38px"
+            minWidth="140px"
+            buttonStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '13px' }}
+          />
         </div>
 
         {/* Data Table */}
@@ -365,59 +463,64 @@ export default function OfferListPage() {
           <table className="offer-table">
             <thead>
               <tr>
-                <th style={{ width: '48%', minWidth: '240px' }}>Offer</th>
-                <th style={{ width: '28%', minWidth: '210px' }}>Schedule</th>
-                <th style={{ width: '14%', minWidth: '110px' }}>Status</th>
-                <th style={{ width: '10%', minWidth: '90px', textAlign: 'right' }}>Actions</th>
+                <th style={{ width: '48%', minWidth: '240px' }}>OFFER</th>
+                <th style={{ width: '28%', minWidth: '200px' }}>SCHEDULE</th>
+                <th style={{ width: '14%', minWidth: '110px' }}>STATUS</th>
+                <th style={{ width: '10%', minWidth: '90px', textAlign: 'right' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {paginatedOffers.length > 0 ? (
-                paginatedOffers.map(item => (
-                  <tr key={item.id}>
-                    <td>
-                      <div className="offer-name-box">
-                        <div className="offer-avatar-icon">
-                          <AppIcon icon={SparklesIcon} size={18} color="#6657ec" />
+                paginatedOffers.map(item => {
+                  const offerText = getOfferText(item);
+                  const computedSchedule = getComputedSchedule(item);
+                  const computedStatus = getComputedOfferStatus(item);
+                  return (
+                    <tr key={item.id}>
+                      <td>
+                        <div className="offer-name-box">
+                          <div className="offer-avatar-icon">
+                            <AppIcon icon={SparklesIcon} size={18} color="#6657ec" />
+                          </div>
+                          <div className="offer-meta-info">
+                            <strong style={{ whiteSpace: 'pre-line', lineHeight: '1.5' }}>
+                              {truncateText(offerText, 100)}
+                            </strong>
+                          </div>
                         </div>
-                        <div className="offer-meta-info">
-                          <strong style={{ whiteSpace: 'pre-line', lineHeight: '1.5' }}>
-                            {truncateText(item.offer_text, 100)}
-                          </strong>
+                      </td>
+                      <td className="offer-schedule-cell">
+                        {computedSchedule && computedSchedule !== '—' ? (
+                          <div className="schedule-lines">
+                            {computedSchedule.split('\n').map((line, idx) => (
+                              <span key={idx} className={`schedule-line ${idx > 0 ? 'schedule-line-sub' : ''}`}>
+                                {line}
+                              </span>
+                            ))}
+                          </div>
+                        ) : '—'}
+                      </td>
+                      <td>
+                        <span className={`badge-status ${(computedStatus || '').toLowerCase()}`}>
+                          {computedStatus === 'Active' && '● Active'}
+                          {computedStatus === 'Scheduled' && 'Scheduled'}
+                          {computedStatus === 'Expired' && 'Expired'}
+                          {computedStatus === 'Inactive' && '○ Inactive'}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="action-btn-group" style={{ justifyContent: 'flex-end' }}>
+                          <button className="btn-icon-action" title="Edit Offer" aria-label="Edit Offer" onClick={() => handleOpenEditModal(item)}>
+                            <AppIcon icon={EditIcon} size={15} />
+                          </button>
+                          <button className="btn-icon-action delete" title="Delete Offer" aria-label="Delete Offer" onClick={() => setDeleteTarget(item)}>
+                            <AppIcon icon={DeleteIcon} size={15} />
+                          </button>
                         </div>
-                      </div>
-                    </td>
-                    <td className="offer-schedule-cell">
-                      {item.schedule ? (
-                        <div className="schedule-lines">
-                          {item.schedule.split('\n').map((line, idx) => (
-                            <span key={idx} className={`schedule-line ${idx > 0 ? 'schedule-line-sub' : ''}`}>
-                              {line}
-                            </span>
-                          ))}
-                        </div>
-                      ) : '—'}
-                    </td>
-                    <td>
-                      <span className={`badge-status ${(item.status || '').toLowerCase()}`}>
-                        {item.status === 'Active' && '● Active'}
-                        {item.status === 'Scheduled' && 'Scheduled'}
-                        {item.status === 'Expired' && 'Expired'}
-                        {item.status === 'Inactive' && '○ Inactive'}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div className="action-btn-group" style={{ justifyContent: 'flex-end' }}>
-                        <button className="btn-icon-action" title="Edit Offer" aria-label="Edit Offer" onClick={() => handleOpenEditModal(item)}>
-                          <AppIcon icon={EditIcon} size={15} />
-                        </button>
-                        <button className="btn-icon-action delete" title="Delete Offer" aria-label="Delete Offer" onClick={() => setDeleteTarget(item)}>
-                          <AppIcon icon={DeleteIcon} size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="4">

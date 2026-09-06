@@ -57,7 +57,7 @@ export default function AdminUsersPage() {
   const allAvailablePermissions = [
     'Dashboard', 'Products', 'Categories', 'Orders',
     'Customers', 'Reviews', 'Messages', 'Banners',
-    'Payments', 'Admin Users', 'Settings'
+    'Offers', 'Payments', 'Admin Users', 'Settings'
   ]
 
   // Password validation rules
@@ -168,6 +168,18 @@ export default function AdminUsersPage() {
     })
   }
 
+  const triggerNotificationRefresh = () => {
+    try {
+      if (typeof window.refreshAdminNotifications === 'function') {
+        window.refreshAdminNotifications()
+      }
+      window.dispatchEvent(new CustomEvent('adminNotificationRequestRefresh'))
+      window.dispatchEvent(new CustomEvent('notificationRefresh'))
+    } catch {
+      // Ignore background sync errors
+    }
+  }
+
   // Add User
   const handleAddSubmit = async (e) => {
     e.preventDefault()
@@ -191,6 +203,7 @@ export default function AdminUsersPage() {
         setSuccessMsg(`Admin user ${formData.name || formData.username} created successfully.`)
         setIsAddModalOpen(false)
         refreshUsers()
+        triggerNotificationRefresh()
       } else {
         setErrorMsg(data.error || 'Failed to create admin user.')
       }
@@ -239,6 +252,7 @@ export default function AdminUsersPage() {
         setSuccessMsg(`Admin user updated successfully.`)
         setEditingUser(null)
         refreshUsers()
+        triggerNotificationRefresh()
       } else {
         setErrorMsg(data.error || 'Failed to update admin user.')
       }
@@ -264,6 +278,7 @@ export default function AdminUsersPage() {
           prev.map(item => item.id === u.id ? { ...item, isActive: newStatus, is_active: newStatus } : item)
         )
         setSuccessMsg(`Status updated for ${u.name || u.username}.`)
+        triggerNotificationRefresh()
       } else {
         setErrorMsg('Failed to update status.')
       }
@@ -287,6 +302,7 @@ export default function AdminUsersPage() {
         setUsers(prev => prev.filter(u => u.id !== deletingUser.id))
         setSuccessMsg('Admin user removed.')
         setDeletingUser(null)
+        triggerNotificationRefresh()
       } else {
         const data = await res.json()
         setErrorMsg(data.error || 'Failed to delete user.')
@@ -386,8 +402,8 @@ export default function AdminUsersPage() {
       <div className="admin-users-table-card">
         {/* Filter Bar */}
         <div className="table-filter-bar">
-          <div className="search-input-wrapper">
-            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
+          <div className="admin-search-box">
+            <span className="admin-search-icon">
               <AppIcon icon={SearchIcon} size={16} />
             </span>
             <input
@@ -395,7 +411,7 @@ export default function AdminUsersPage() {
               placeholder="Search by name, email or username..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              style={{ paddingLeft: '36px' }}
+              className="admin-search-input"
             />
           </div>
 
@@ -410,7 +426,9 @@ export default function AdminUsersPage() {
               { value: 'Order Manager', label: 'Order Manager' },
               { value: 'Customer Support', label: 'Customer Support' }
             ]}
-            minWidth="150px"
+            height="38px"
+            width="100%"
+            minWidth="160px"
           />
 
           <CustomSelect
@@ -421,7 +439,9 @@ export default function AdminUsersPage() {
               { value: 'active', label: 'Active Accounts' },
               { value: 'inactive', label: 'Inactive Accounts' }
             ]}
-            minWidth="145px"
+            height="38px"
+            width="100%"
+            minWidth="160px"
           />
         </div>
 
@@ -430,12 +450,12 @@ export default function AdminUsersPage() {
           <table className="admin-users-table">
             <thead>
               <tr>
-                <th style={{ width: '40px' }}>#</th>
-                <th>ADMIN USER</th>
-                <th>ROLE</th>
-                <th>STATUS</th>
-                <th>JOINED</th>
-                <th style={{ textAlign: 'right', minWidth: '150px' }}>ACTIONS</th>
+                <th style={{ width: '50px', minWidth: '50px' }}>#</th>
+                <th style={{ width: '28%', minWidth: '180px' }}>ADMIN USER</th>
+                <th style={{ width: '18%', minWidth: '130px' }}>ROLE</th>
+                <th style={{ width: '14%', minWidth: '100px' }}>STATUS</th>
+                <th style={{ width: '18%', minWidth: '120px' }}>JOINED</th>
+                <th style={{ width: '22%', minWidth: '150px', textAlign: 'right' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>

@@ -5,7 +5,7 @@
 
 {% block extrahead %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'admin/react/profile.css' %}?v=6">
+<link rel="stylesheet" href="{% static 'admin/react/profile.css' %}?v=7">
 <style>
     body.admin-profile-page #content {
         padding: 0 !important;
@@ -16,9 +16,9 @@
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-    <a href="{% url 'admin:index' %}">Dashboard</a>
+    <a href="{{ first_allowed_url|default:'/admin/dashboard/' }}">Dashboard</a>
     <span class="breadcrumb-separator">&rsaquo;</span>
-    <span class="current-page">My Profile</span>
+    <span class="current-page">Admin Profile</span>
 </div>
 {% endblock %}
 {% block content_title %}{% endblock %}
@@ -47,5 +47,5 @@
     };
 </script>
 
-<script type="module" src="{% static 'admin/react/profile.js' %}?v=6"></script>
+<script type="module" src="{% static 'admin/react/profile.js' %}?v=7"></script>
 {% endblock %}

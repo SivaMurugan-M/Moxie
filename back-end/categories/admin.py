@@ -1,4 +1,5 @@
 from django.contrib import admin
+from api.permissions_utils import has_admin_permission
 from .models import Category, Subcategory
 
 
@@ -10,6 +11,21 @@ class SubcategoryInline(admin.TabularInline):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return has_admin_permission(request.user, 'categories')
+
+    def has_view_permission(self, request, obj=None):
+        return has_admin_permission(request.user, 'categories')
+
+    def has_add_permission(self, request):
+        return has_admin_permission(request.user, 'categories')
+
+    def has_change_permission(self, request, obj=None):
+        return has_admin_permission(request.user, 'categories')
+
+    def has_delete_permission(self, request, obj=None):
+        return has_admin_permission(request.user, 'categories')
+
     list_display = (
         'name',
         'slug',
@@ -44,6 +60,21 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Subcategory)
 class SubcategoryAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return has_admin_permission(request.user, 'categories')
+
+    def has_view_permission(self, request, obj=None):
+        return has_admin_permission(request.user, 'categories')
+
+    def has_add_permission(self, request):
+        return has_admin_permission(request.user, 'categories')
+
+    def has_change_permission(self, request, obj=None):
+        return has_admin_permission(request.user, 'categories')
+
+    def has_delete_permission(self, request, obj=None):
+        return has_admin_permission(request.user, 'categories')
+
     list_display = (
         'name',
         'slug',

@@ -85,24 +85,27 @@ export default function CategoryAndInventorySection({ categories = [], inventory
           background: '#ffffff',
           border: '1px solid #e7ecf3',
           borderRadius: '16px',
-          padding: '18px 20px',
-          boxShadow: '0 3px 12px rgba(0,0,0,0.03)',
+          padding: '16px 18px',
+          boxShadow: '0 1px 3px rgba(15,23,42,0.03), 0 4px 12px rgba(15,23,42,0.04)',
           display: 'flex',
           flexDirection: 'column',
-          height: 'auto',
-          boxSizing: 'border-box'
+          height: '360px',
+          minHeight: '360px',
+          maxHeight: '360px',
+          boxSizing: 'border-box',
+          overflow: 'hidden'
         }}
       >
-        <div style={{ marginBottom: '16px' }}>
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.01em' }}>
+        <div style={{ marginBottom: '12px', flex: '0 0 auto' }}>
+          <h2 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.01em', lineHeight: '1.2' }}>
             Category Performance
           </h2>
-          <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b' }}>
+          <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#64748b', lineHeight: '1.2' }}>
             Sales share, units sold, and stock distribution by category
           </p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', paddingRight: '3px', scrollbarWidth: 'thin' }}>
           {categories.length > 0 ? (
             categories.map((c) => (
               <div
@@ -173,156 +176,158 @@ export default function CategoryAndInventorySection({ categories = [], inventory
       </div>
 
       {/* 2. Inventory Analytics & Health Card */}
-      <div
-        className="panel"
+      <div        className="panel inventory-analytics-card"
         style={{
           background: '#ffffff',
           border: '1px solid #e7ecf3',
           borderRadius: '16px',
-          padding: '18px 20px',
-          boxShadow: '0 3px 12px rgba(0,0,0,0.03)',
+          padding: '16px 18px',
+          boxShadow: '0 1px 3px rgba(15,23,42,0.03), 0 4px 12px rgba(15,23,42,0.04)',
           display: 'flex',
           flexDirection: 'column',
-          height: 'auto',
-          boxSizing: 'border-box'
+          height: '360px',
+          minHeight: '360px',
+          maxHeight: '360px',
+          boxSizing: 'border-box',
+          overflow: 'hidden'
         }}
       >
-        <div style={{ marginBottom: '16px' }}>
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.01em', lineHeight: '1.2' }}>
+        {/* 1. TITLE + SUBTITLE AT TOP */}
+        <div style={{ marginBottom: '0px', flex: '0 0 auto' }}>
+          <h2 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.01em', lineHeight: '1.2' }}>
             Inventory Analytics & Health
           </h2>
-          <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b', lineHeight: '1.3' }}>
+          <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#64748b', lineHeight: '1.2' }}>
             Live stock breakdown, fast-moving items, and inventory health
           </p>
         </div>
 
-        {/* Top Visualization: Donut Chart on Left & Equal Status Cards on Right */}
+        {/* 2. DONUT / VISUALIZATION DIAGRAM BELOW - CENTERED */}
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: '108px 1fr',
+            display: 'flex',
             alignItems: 'center',
-            gap: '16px',
-            marginBottom: '14px'
+            justifyContent: 'center',
+            width: '100%',
+            marginTop: '22px',
+            marginBottom: '20px',
+            flex: '0 0 auto'
           }}
         >
-          {/* Donut Chart */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%'
-            }}
-          >
-            <div style={{ width: '104px', height: '104px', position: 'relative', flexShrink: 0, margin: '0 auto' }}>
-              {totalProducts > 0 ? (
-                <canvas ref={chartRef}></canvas>
-              ) : (
-                <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '6px solid #f1f5f9' }}></div>
-              )}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  textAlign: 'center',
-                  pointerEvents: 'none',
-                  lineHeight: '1.1'
-                }}
-              >
-                <strong style={{ display: 'block', fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>
-                  {inventory.total_stock || 0}
-                </strong>
-                <span style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>
-                  Units
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Equal Status Cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-            {/* In Stock */}
+          <div style={{ width: '104px', height: '104px', position: 'relative', flexShrink: 0, margin: '0 auto' }}>
+            {totalProducts > 0 ? (
+              <canvas ref={chartRef}></canvas>
+            ) : (
+              <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '5px solid #f1f5f9' }}></div>
+            )}
             <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0 12px',
-                height: '38px',
-                background: '#f0fdf4',
-                borderRadius: '8px',
-                border: '1px solid #dcfce7',
-                boxSizing: 'border-box'
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center',
+                pointerEvents: 'none',
+                lineHeight: '1.1'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
-                <span style={{ fontSize: '12px', fontWeight: '600', color: '#166534' }}>In Stock</span>
-              </div>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#15803d' }}>
-                {inStock} ({inventory.in_stock_pct || 0}%)
-              </span>
-            </div>
-
-            {/* Low Stock */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0 12px',
-                height: '38px',
-                background: '#eff6ff',
-                borderRadius: '8px',
-                border: '1px solid #dbeafe',
-                boxSizing: 'border-box'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#3b82f6', flexShrink: 0 }} />
-                <span style={{ fontSize: '12px', fontWeight: '600', color: '#1e40af' }}>Low Stock</span>
-              </div>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#1d4ed8' }}>
-                {lowStock} ({inventory.low_stock_pct || 0}%)
-              </span>
-            </div>
-
-            {/* Out of Stock */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0 12px',
-                height: '38px',
-                background: '#fef2f2',
-                borderRadius: '8px',
-                border: '1px solid #fee2e2',
-                boxSizing: 'border-box'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
-                <span style={{ fontSize: '12px', fontWeight: '600', color: '#991b1b' }}>Out of Stock</span>
-              </div>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#b91c1c' }}>
-                {outOfStock} ({inventory.out_of_stock_pct || 0}%)
+              <strong style={{ display: 'block', fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>
+                {inventory.total_stock || 0}
+              </strong>
+              <span style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '1px' }}>
+                UNITS
               </span>
             </div>
           </div>
         </div>
 
-        {/* Bottom Fast / Slow Moving Summary Cards */}
+        {/* 3. THREE STOCK STATUS ROWS ONE-BY-ONE BELOW THE DIAGRAM */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', marginBottom: '18px', flex: '0 0 auto' }}>
+          {/* In Stock */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 12px',
+              height: '34px',
+              background: '#f0fdf4',
+              borderRadius: '8px',
+              border: '1px solid #dcfce7',
+              boxSizing: 'border-box',
+              width: '100%'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#166534' }}>In Stock</span>
+            </div>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: '#15803d' }}>
+              {inStock} ({inventory.in_stock_pct || 0}%)
+            </span>
+          </div>
+
+          {/* Low Stock */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 12px',
+              height: '34px',
+              background: '#eff6ff',
+              borderRadius: '8px',
+              border: '1px solid #dbeafe',
+              boxSizing: 'border-box',
+              width: '100%'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#3b82f6', flexShrink: 0 }} />
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#1e40af' }}>Low Stock</span>
+            </div>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: '#1d4ed8' }}>
+              {lowStock} ({inventory.low_stock_pct || 0}%)
+            </span>
+          </div>
+
+          {/* Out of Stock */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 12px',
+              height: '34px',
+              background: '#fef2f2',
+              borderRadius: '8px',
+              border: '1px solid #fee2e2',
+              boxSizing: 'border-box',
+              width: '100%'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#991b1b' }}>Out of Stock</span>
+            </div>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: '#b91c1c' }}>
+              {outOfStock} ({inventory.out_of_stock_pct || 0}%)
+            </span>
+          </div>
+        </div>
+
+        {/* 4. DIVIDER & 5. TWO EQUAL SUMMARY BOXES AT THE BOTTOM */}
         <div
+          className="inventory-footer"
           style={{
-            paddingTop: '12px',
+            marginTop: 'auto',
+            paddingTop: '14px',
             borderTop: '1px solid #f1f5f9',
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '10px'
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gap: '12px',
+            width: '100%',
+            flex: '0 0 auto'
           }}
         >
           <div
@@ -333,7 +338,9 @@ export default function CategoryAndInventorySection({ categories = [], inventory
               border: '1px solid #f1f5f9',
               display: 'flex',
               flexDirection: 'column',
-              gap: '2px'
+              gap: '2px',
+              boxSizing: 'border-box',
+              width: '100%'
             }}
           >
             <span style={{ color: '#64748b', fontSize: '10.5px', display: 'block', fontWeight: '500' }}>
@@ -351,7 +358,9 @@ export default function CategoryAndInventorySection({ categories = [], inventory
               border: '1px solid #f1f5f9',
               display: 'flex',
               flexDirection: 'column',
-              gap: '2px'
+              gap: '2px',
+              boxSizing: 'border-box',
+              width: '100%'
             }}
           >
             <span style={{ color: '#64748b', fontSize: '10.5px', display: 'block', fontWeight: '500' }}>

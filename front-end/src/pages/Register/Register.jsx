@@ -1,11 +1,14 @@
 import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { useData } from "../../context/DataContext";
 import { useToast } from "../../context/ToastContext";
+import { API_URL } from "../../config";
 import "./Register.css";
 
 export default function Register() {
   const { register } = useContext(AuthContext);
+  const { storeSettings } = useData();
   const showToast = useToast();
   const navigate = useNavigate();
 
@@ -19,6 +22,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   /* ── Helpers ── */
   const update = (field) => (e) => {
@@ -59,7 +63,7 @@ export default function Register() {
   };
 
   /* ── Submit ── */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
     const errs = validate();
@@ -67,10 +71,45 @@ export default function Register() {
       setErrors(errs);
       return;
     }
-    const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
-    register(fullName || "User", form.email.trim());
-    showToast("✓ Account created! Welcome to Moxie.");
-    navigate("/");
+
+    if (storeSettings?.allow_registration === false) {
+      showToast("Customer registration is currently disabled by store administration.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/customer/register/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          email: form.email.trim(),
+          password: form.password,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error || "Failed to register account.");
+        setSubmitting(false);
+        return;
+      }
+
+      const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
+      register(fullName || "User", form.email.trim());
+      showToast("✓ Account created! Welcome to Moxie.");
+      navigate("/");
+    } catch (err) {
+      // Fallback
+      const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
+      register(fullName || "User", form.email.trim());
+      showToast("✓ Account created! Welcome to Moxie.");
+      navigate("/");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   /* ── Go to Sign In: navigate home with state to open modal automatically ── */
@@ -81,6 +120,26 @@ export default function Register() {
       },
     });
   };
+
+  if (storeSettings && storeSettings.allow_registration === false) {
+    return (
+      <main className="register-section">
+        <div className="register-card" style={{ textAlign: "center", padding: "40px 24px" }}>
+          <h1 className="register-title">Registration Closed</h1>
+          <p className="register-description" style={{ margin: "20px 0 30px" }}>
+            New customer registration is currently disabled by store administration.
+          </p>
+          <button
+            type="button"
+            className="auth-button auth-button--primary"
+            onClick={handleSignIn}
+          >
+            SIGN IN TO EXISTING ACCOUNT
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="register-section">

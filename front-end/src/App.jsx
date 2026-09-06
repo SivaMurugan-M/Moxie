@@ -13,7 +13,10 @@ import Deals from "./pages/Deals/Deals";
 import BrandIntro from "./components/BrandIntro/BrandIntro";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import SignInModal from "./components/auth/SignInModal";
+import MaintenancePage from "./pages/Maintenance/MaintenancePage";
+import NotFoundPage from "./pages/NotFound/NotFoundPage";
 import { useModal } from "./context/ModalContext";
+import { useData } from "./context/DataContext";
 import { BACKEND_URL } from "./config";
 
 const ProductsSelector = () => {
@@ -50,16 +53,33 @@ const AdminRedirect = ({ target }) => {
 };
 
 
+const LoginRoute = () => {
+  const { openLogin } = useModal();
+  useEffect(() => {
+    openLogin();
+  }, [openLogin]);
+  return <Home />;
+};
+
 function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const { pathname } = useLocation();
   const { isLoginOpen, closeLogin } = useModal();
+  const { storeSettings } = useData();
 
-  // Scroll to top on route change
+  // Scroll to top on route change & clear admin visit when outside admin
   useEffect(() => {
     window.scrollTo(0, 0);
+    if (!pathname.startsWith('/admin')) {
+      try {
+        sessionStorage.removeItem('adminVisitActive');
+      } catch(e) {}
+    }
   }, [pathname]);
 
+  if (storeSettings?.maintenance_mode && !pathname.startsWith('/admin')) {
+    return <MaintenancePage settings={storeSettings} />;
+  }
 
   return (
     <BrandIntro>
@@ -72,16 +92,23 @@ function App() {
         <Route path="/products" element={<Products />} />
         <Route path="/products/:category" element={<ProductsSelector />} />
         <Route path="/products/:category/:subcategory" element={<Products />} />
+        <Route path="/product/:productId" element={<ProductDetails />} />
+        <Route path="/product/:category/:productId" element={<ProductDetails />} />
+        <Route path="/products/product/:productId" element={<ProductDetails />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<LoginRoute />} />
+        <Route path="/signin" element={<LoginRoute />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/deals" element={<Deals />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/orders" element={<ProfilePage defaultTab="orders" />} />
+        <Route path="/my-orders" element={<ProfilePage defaultTab="orders" />} />
         <Route path="/admin" element={<AdminRedirect target="dashboard" />} />
         <Route path="/admin/dashboard" element={<AdminRedirect target="dashboard" />} />
         <Route path="/admin/login" element={<AdminRedirect target="login" />} />
-        <Route path="*" element={<div className="empty-state"><div className="empty-icon">404</div><h1>Page not found</h1><Link to="/" className="primary-btn">Back to home</Link></div>} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
       <Footer />

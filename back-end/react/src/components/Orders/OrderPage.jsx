@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import CustomSelect from '../Common/CustomSelect';
 import {
   AppIcon,
@@ -13,6 +13,15 @@ import {
 } from '../../icons';
 import './OrderPage.css';
 
+function getCsrfToken() {
+  const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+  if (cookie) return cookie.split('=')[1];
+  const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+  if (input) return input.value;
+  if (window.DJANGO_CONTEXT && window.DJANGO_CONTEXT.csrfToken) return window.DJANGO_CONTEXT.csrfToken;
+  return '';
+}
+
 export default function OrderPage() {
   const djangoContext = window.DJANGO_CONTEXT || {};
 
@@ -26,6 +35,7 @@ export default function OrderPage() {
     total_revenue: djangoContext.totalRevenue || 0
   });
 
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentFilter, setPaymentFilter] = useState('all');
@@ -45,6 +55,7 @@ export default function OrderPage() {
   const [updateMessage, setUpdateMessage] = useState('');
 
   const fetchOrders = async () => {
+    setLoading(true);
     try {
       const params = new URLSearchParams();
       if (searchTerm) params.append('q', searchTerm);
@@ -58,13 +69,15 @@ export default function OrderPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setOrders(data.orders || []);
+        setOrders(data.orders || data.results || data.orders_list || []);
         if (data.stats) {
           setStats(data.stats);
         }
       }
     } catch (err) {
       console.error("Failed to fetch orders:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,11 +111,12 @@ export default function OrderPage() {
     setUpdating(true);
     setUpdateMessage('');
     try {
+      const csrfToken = getCsrfToken();
       const res = await fetch(`/api/admin-orders/${selectedOrder.id}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': djangoContext.csrfToken || ''
+          'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({
           order_status: updateOrderStatus,
@@ -115,11 +129,16 @@ export default function OrderPage() {
         if (selectedOrderDetail) {
           setSelectedOrderDetail(prev => ({
             ...prev,
-            orderStatus: data.order_status,
-            paymentStatus: data.payment_status
+            orderStatus: data.order_status || data.orderStatus,
+            paymentStatus: data.payment_status || data.paymentStatus
           }));
         }
         fetchOrders();
+        if (typeof window.refreshAdminNotifications === 'function') {
+          window.refreshAdminNotifications();
+        } else {
+          window.dispatchEvent(new CustomEvent('adminNotificationRequestRefresh'));
+        }
       } else {
         setUpdateMessage(data.error || "Failed to update order status.");
       }
@@ -211,16 +230,16 @@ export default function OrderPage() {
         {/* Filter Toolbar matching Screenshot */}
         <div className="table-filter-bar">
           <div className="filter-left-group">
-            <div className="search-input-wrapper">
-              <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
-                <AppIcon icon={SearchIcon} size={15} />
+            <div className="order-search-box">
+              <span className="order-search-icon">
+                <AppIcon icon={SearchIcon} size={16} />
               </span>
               <input
                 type="text"
                 placeholder="Search orders..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                style={{ paddingLeft: '34px' }}
+                className="order-search-input"
               />
             </div>
           </div>
@@ -297,7 +316,16 @@ export default function OrderPage() {
             </tr>
           </thead>
           <tbody>
-            {paginatedOrders.length > 0 ? (
+            {loading && orders.length === 0 ? (
+              <tr>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                    <span style={{ display: 'inline-block', width: '18px', height: '18px', border: '2px solid #cbd5e1', borderTopColor: '#6657ec', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></span>
+                    <span style={{ fontWeight: '500' }}>Loading orders...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : paginatedOrders.length > 0 ? (
               paginatedOrders.map((o) => {
                 const statusClass = (o.orderStatus || 'pending').toLowerCase().replace(/\s+/g, '-');
                 const paymentClass = (o.paymentStatus || 'pending').toLowerCase();
@@ -415,9 +443,9 @@ export default function OrderPage() {
                   {/* Order Status Change Card */}
                   <div className="order-detail-card">
                     <div className="detail-card-title">UPDATE ORDER STATUS</div>
-                    <div className="status-update-box">
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label style={{ fontSize: '11.5px', fontWeight: '600', color: '#64748b' }}>Order Status</label>
+                    <div className="status-update-grid">
+                      <div className="status-form-group">
+                        <label className="status-form-label">Order Status</label>
                         <CustomSelect
                           value={updateOrderStatus}
                           onChange={(e) => setUpdateOrderStatus(e.target.value)}
@@ -431,12 +459,13 @@ export default function OrderPage() {
                             { value: 'Cancelled', label: 'Cancelled' },
                             { value: 'Returned', label: 'Returned' }
                           ]}
+                          height="38px"
                           width="100%"
                         />
                       </div>
 
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label style={{ fontSize: '11.5px', fontWeight: '600', color: '#64748b' }}>Payment Status</label>
+                      <div className="status-form-group">
+                        <label className="status-form-label">Payment Status</label>
                         <CustomSelect
                           value={updatePaymentStatus}
                           onChange={(e) => setUpdatePaymentStatus(e.target.value)}
@@ -446,13 +475,16 @@ export default function OrderPage() {
                             { value: 'Failed', label: 'Failed' },
                             { value: 'Refunded', label: 'Refunded' }
                           ]}
+                          height="38px"
                           width="100%"
                         />
                       </div>
 
-                      <button className="btn-update-status" disabled={updating} onClick={handleSaveStatus}>
-                        {updating ? 'Saving...' : 'Update Status'}
-                      </button>
+                      <div className="status-form-group status-action-group">
+                        <button className="btn-update-status" disabled={updating} onClick={handleSaveStatus}>
+                          {updating ? 'Saving...' : 'Update Status'}
+                        </button>
+                      </div>
                     </div>
                   </div>
 

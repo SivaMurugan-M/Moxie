@@ -101,6 +101,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
 
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'api.middleware.AdminNoCacheMiddleware',
 ]
 
 
@@ -129,11 +131,10 @@ TEMPLATES = [
             'context_processors': [
 
                 'django.template.context_processors.request',
-
                 'django.contrib.auth.context_processors.auth',
-
                 'django.contrib.messages.context_processors.messages',
-
+                'api.context_processors.admin_permissions_context',
+                'api.context_processors.store_settings_context',
             ],
         },
     },
@@ -194,7 +195,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -205,7 +206,7 @@ USE_TZ = True
 # STATIC FILES
 # ============================================================
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
@@ -286,9 +287,9 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 
-LOGIN_URL = '/admin/login/'
-LOGIN_REDIRECT_URL = '/admin/'
-LOGOUT_REDIRECT_URL = '/admin/login/'
+LOGIN_URL = '/admin/'
+LOGIN_REDIRECT_URL = '/admin/dashboard/'
+LOGOUT_REDIRECT_URL = '/admin/'
 
 
 

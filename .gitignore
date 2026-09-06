@@ -1,0 +1,38 @@
+# Environment variables & secrets
+.env
+.env.*
+.env.local
+.env.production.local
+!.env.example
+
+# Zip archives and scratch
+*.zip
+Moxie_Project.zip
+scratch/
+test_*.py
+
+# Node modules & builds
+node_modules/
+back-end/react/node_modules/
+front-end/node_modules/
+front-end/build/
+.pytest_cache/
+
+# Python Virtual Environments & Cache
+venv/
+.venv/
+back-end/venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+back-end/db.sqlite3
+back-end/db.sqlite3-journal
+
+# Logs & OS / IDE files
+*.log
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

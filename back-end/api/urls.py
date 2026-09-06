@@ -29,13 +29,19 @@ from .views import (
     AdminVerifyResetCodeView,
     BannerDetailView,
     BannerListView,
+    BannerTrackClickView,
     CategoryDetailView,
     CategoryListView,
+    CreateCodOrderView,
     CreateRazorpayOrderView,
+    CurrentOfferView,
+    CustomerCancelOrderView,
+    CustomerRegisterView,
     HealthCheckView,
     ProductDetailView,
     ProductListView,
     ProductVariantDetailView,
+    PublicSettingsView,
     RazorpayWebhookView,
     ReviewDetailView,
     ReviewListView,
@@ -45,8 +51,13 @@ from .views import (
 )
 
 urlpatterns = [
-    # Health Check
+    # Health Check & Public Settings
     path('health/', HealthCheckView.as_view(), name='health-check'),
+    path('public-settings/', PublicSettingsView.as_view(), name='public-settings'),
+    path('public/settings/', PublicSettingsView.as_view(), name='public-settings-slash'),
+    path('settings/public/', PublicSettingsView.as_view(), name='settings-public'),
+    path('customer/register/', CustomerRegisterView.as_view(), name='customer-register'),
+    path('register/', CustomerRegisterView.as_view(), name='customer-register-root'),
 
     # Admin Authentication
     path('admin/check-auth/', AdminCheckAuthView.as_view(), name='admin-api-check-auth'),
@@ -68,13 +79,17 @@ urlpatterns = [
     # Banners
     path('banners/', BannerListView.as_view(), name='banner-list'),
     path('banners/<int:pk>/', BannerDetailView.as_view(), name='banner-detail'),
+    path('banners/<int:pk>/click/', BannerTrackClickView.as_view(), name='banner-track-click'),
 
     # Reviews
     path('reviews/', ReviewListView.as_view(), name='review-list'),
     path('reviews/<int:pk>/', ReviewDetailView.as_view(), name='review-detail'),
 
-    # Payments & Razorpay
+    # Payments & Razorpay & COD
     path('payment/order/create/', CreateRazorpayOrderView.as_view(), name='payment-order-create'),
+    path('payment/order/cod/', CreateCodOrderView.as_view(), name='payment-order-cod'),
+    path('payment/cod/', CreateCodOrderView.as_view(), name='payment-cod-root'),
+    path('orders/cod/', CreateCodOrderView.as_view(), name='orders-cod'),
     path('payment/verify/', VerifyRazorpayPaymentView.as_view(), name='payment-verify'),
     path('payment/webhook/', RazorpayWebhookView.as_view(), name='payment-webhook'),
 
@@ -84,13 +99,17 @@ urlpatterns = [
     path('notifications/mark-all-read/', AdminNotificationMarkAllReadView.as_view(), name='admin-notification-mark-all-read'),
     path('notifications/<int:pk>/delete/', AdminNotificationDeleteView.as_view(), name='admin-notification-delete'),
 
-    # Admin Offers
+    # Admin & Public Offers
     path('offers/', AdminOffersView.as_view(), name='admin-offers'),
+    path('offers/current/', CurrentOfferView.as_view(), name='current-offer'),
     path('offers/<int:pk>/', AdminOfferDetailView.as_view(), name='admin-offer-detail'),
 
     # Admin Orders
     path('admin-orders/', AdminOrdersView.as_view(), name='admin-orders'),
     path('admin-orders/<int:pk>/', AdminOrderDetailView.as_view(), name='admin-order-detail'),
+    path('orders/<int:pk>/', AdminOrderDetailView.as_view(), name='order-detail'),
+    path('customer/orders/<int:pk>/cancel/', CustomerCancelOrderView.as_view(), name='customer-order-cancel'),
+    path('orders/<int:pk>/cancel/', CustomerCancelOrderView.as_view(), name='order-cancel'),
 
     # Admin Customers
     path('customers/', AdminCustomersView.as_view(), name='admin-customers'),
@@ -104,8 +123,10 @@ urlpatterns = [
 
     # Admin Settings & Profile
     path('admin-settings/', AdminSettingsView.as_view(), name='admin-settings'),
+    path('admin/settings/', AdminSettingsView.as_view(), name='admin-settings-alias'),
     path('admin-settings/profile/', AdminProfileSettingsView.as_view(), name='admin-profile-settings'),
     path('admin-settings/change-password/', AdminChangePasswordView.as_view(), name='admin-change-password'),
+    path('admin/change-password/', AdminChangePasswordView.as_view(), name='admin-api-change-password'),
     path('admin-settings/test-email/', AdminTestEmailView.as_view(), name='admin-test-email'),
     path('admin-settings/forgot-password/', AdminForgotPasswordView.as_view(), name='admin-forgot-password'),
     path('admin-settings/verify-reset-code/', AdminVerifyResetCodeView.as_view(), name='admin-verify-reset-code'),

@@ -1,4 +1,4 @@
-﻿{% extends "admin/base_site.html" %}
+{% extends "admin/base_site.html" %}
 {% load i18n static humanize %}
 
 {% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-list{% endblock %}
@@ -10,7 +10,7 @@
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-    <a href="{% url 'admin:index' %}">Dashboard</a>
+    <a href="{{ first_allowed_url|default:'/admin/dashboard/' }}">Dashboard</a>
     <span class="breadcrumb-separator">&rsaquo;</span>
     <span class="current-page">Products</span>
 </div>
@@ -46,13 +46,33 @@
             {
                 id: "{{ item.id }}",
                 name: "{{ item.name|escapejs }}",
-                category: "{{ item.category.name|escapejs }}",
+                category: "{% if item.category %}{{ item.category.name|escapejs }}{% endif %}",
+                subcategory: "{% if item.subcategory %}{{ item.subcategory.name|escapejs }}{% endif %}",
                 price: parseFloat("{{ item.price|default:0 }}").toLocaleString('en-IN'),
+                rawPrice: parseFloat("{{ item.price|default:0 }}"),
                 discountPrice: "{% if item.discount_price %}₹{{ item.discount_price|intcomma }}{% endif %}",
+                rawDiscountPrice: parseFloat("{{ item.discount_price|default:0 }}"),
                 stock: parseInt("{{ item.stock|default:0 }}"),
                 isActive: {% if item.is_active %}true{% else %}false{% endif %},
-                imageUrl: "{% if item.images.all.0 %}{{ item.images.all.0.image.url }}{% endif %}"
-            },
+                imageUrl: "{% if item.images.all.0 %}{{ item.images.all.0.image.url }}{% endif %}",
+                variants: [
+                    {% for v in item.variants.all %}
+                    {
+                        id: "{{ v.id }}",
+                        color_name: "{{ v.color_name|escapejs }}",
+                        color_code: "{{ v.color_code|escapejs }}",
+                        price: parseFloat("{{ v.price|default:item.price|default:0 }}").toLocaleString('en-IN'),
+                        rawPrice: parseFloat("{{ v.price|default:item.price|default:0 }}"),
+                        discountPrice: "{% if v.discount_price %}₹{{ v.discount_price|intcomma }}{% elif item.discount_price %}₹{{ item.discount_price|intcomma }}{% endif %}",
+                        rawDiscountPrice: parseFloat("{{ v.discount_price|default:item.discount_price|default:0 }}"),
+                        stock: parseInt("{{ v.stock|default:0 }}"),
+                        isActive: {% if v.is_active %}true{% else %}false{% endif %},
+                        imageUrl: "{% if v.images.all.0 %}{{ v.images.all.0.image.url }}{% elif item.images.all.0 %}{{ item.images.all.0.image.url }}{% endif %}",
+                        sizes: [{% for s in v.sizes %}"{{ s|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]
+                    }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            }{% if not forloop.last %},{% endif %}
             {% endfor %}
         ]
     };

@@ -4,7 +4,7 @@ import { AppIcon, ProductIcon, SparklesIcon } from '../../icons'
 export default function BestSellingProductsCard({ bestSellers = [] }) {
   return (
     <div
-      className="panel dashboard-right-card"
+      className="panel"
       style={{
         background: '#ffffff',
         border: '1px solid #e7ecf3',
@@ -13,9 +13,9 @@ export default function BestSellingProductsCard({ bestSellers = [] }) {
         boxShadow: '0 1px 3px rgba(15,23,42,0.03), 0 4px 12px rgba(15,23,42,0.04)',
         display: 'flex',
         flexDirection: 'column',
-        height: '250px',
-        minHeight: '250px',
-        maxHeight: '250px',
+        height: '236px',
+        minHeight: '236px',
+        maxHeight: '236px',
         boxSizing: 'border-box',
         overflow: 'hidden'
       }}
@@ -27,7 +27,7 @@ export default function BestSellingProductsCard({ bestSellers = [] }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '10px',
+          marginBottom: '8px',
           flex: '0 0 auto'
         }}
       >
@@ -57,8 +57,8 @@ export default function BestSellingProductsCard({ bestSellers = [] }) {
           overflowX: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          gap: '7px',
-          paddingRight: '2px',
+          gap: '6px',
+          paddingRight: '3px',
           scrollbarWidth: 'thin'
         }}
       >

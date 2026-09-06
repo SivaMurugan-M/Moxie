@@ -19,11 +19,14 @@ from banners.models import Banner
 from categories.models import Category, Subcategory
 from products.models import Product, Review
 from api.models import AdminProfile, CustomerProfile, Notification, Offer, Order, StoreSettings
+from api.views import get_offer_status
+from api.permissions_utils import admin_permission_required, get_first_allowed_admin_url, has_admin_permission
 
 # Save original index view
 original_index = admin.site.index
 
-def custom_admin_index(request, extra_context=None):
+@admin_permission_required('dashboard')
+def custom_admin_dashboard(request, extra_context=None):
     extra_context = extra_context or {}
     try:
         products = Product.objects.select_related('category').prefetch_related('images')
@@ -59,9 +62,19 @@ def custom_admin_index(request, extra_context=None):
         for item in category_stats:
             item.share = round(((item.product_count or 0) / category_total_stock) * 100)
 
+        store_settings = StoreSettings.objects.filter(id=1).first()
+        min_thresh = store_settings.min_stock_threshold if (store_settings and store_settings.min_stock_threshold is not None) else 5
+        low_stock_enabled = store_settings.low_stock_alert if store_settings else True
+
         stock_total = products.count() or 1
-        in_stock = products.filter(stock__gt=10).count()
-        low_stock = products.filter(stock__gt=0, stock__lte=10).count()
+        if low_stock_enabled:
+            in_stock = products.filter(stock__gt=min_thresh).count()
+            low_stock = products.filter(stock__gt=0, stock__lte=min_thresh).count()
+            low_stock_products_qs = products.filter(stock__gt=0, stock__lte=min_thresh)[:4]
+        else:
+            in_stock = products.filter(stock__gt=0).count()
+            low_stock = 0
+            low_stock_products_qs = []
         out_of_stock = products.filter(stock=0).count()
 
         extra_context.update({
@@ -69,43 +82,42 @@ def custom_admin_index(request, extra_context=None):
             'total_products': products.count(),
             'total_categories': Category.objects.count(),
             'total_banners': Banner.objects.count(),
+            'active_banners': Banner.objects.filter(is_active=True).count(),
             'total_reviews': Review.objects.count(),
+            'total_orders': Order.objects.count(),
+            'pending_orders': Order.objects.filter(order_status='Pending').count(),
+            'completed_orders': Order.objects.filter(order_status='Delivered').count(),
+            'total_revenue': sum(float(o.total_amount) for o in Order.objects.filter(payment_status='Paid')),
             'inventory_value': inventory_value,
-            'active_products': products.filter(is_active=True).count(),
-            'top_products': products.order_by('-stock', '-created_at')[:4],
-            'recent_products': products.order_by('-created_at')[:5],
-            'catalog_activity': activity,
+            'recent_orders': Order.objects.order_by('-created_at')[:5],
+            'recent_reviews': Review.objects.order_by('-created_at')[:4],
+            'low_stock_products': low_stock_products_qs,
+            'activity_data': activity,
             'category_stats': category_stats,
-            'category_total_stock': category_total_stock,
-            'in_stock': in_stock,
-            'low_stock': low_stock,
-            'out_of_stock': out_of_stock,
+            'in_stock_count': in_stock,
+            'low_stock_count': low_stock,
+            'out_of_stock_count': out_of_stock,
             'in_stock_percent': round((in_stock / stock_total) * 100),
             'low_stock_percent': round((low_stock / stock_total) * 100),
             'out_of_stock_percent': round((out_of_stock / stock_total) * 100),
             'dashboard_date': today,
         })
-    except Exception:
+    except Exception as e:
         pass
     
-    response = original_index(request, extra_context=extra_context)
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
-    return response
-
-admin.site.index = custom_admin_index
-
-# Custom branding for Django Admin
-admin.site.site_header = "Moxie Admin Portal"
-admin.site.site_title = "Moxie Admin Portal"
-admin.site.index_title = "Welcome to Moxie Admin Portal"
+    return original_index(request, extra_context=extra_context)
 
 def custom_logout(request):
     from django.contrib.auth import logout as django_logout
     django_logout(request)
-    response = redirect('admin:login')
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    if hasattr(request, 'session'):
+        request.session.flush()
+    next_url = request.GET.get('next') or request.POST.get('next')
+    if next_url:
+        response = redirect(next_url)
+    else:
+        response = redirect('/admin/')
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0, private'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
     return response
@@ -114,60 +126,99 @@ def custom_admin_login(request, extra_context=None):
     from django.contrib.auth.forms import AuthenticationForm
     from django.contrib.auth import login as auth_login
 
-    if request.user.is_authenticated and request.user.is_staff:
-        response = redirect('/admin/')
-        response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
-        return response
-
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            if user.is_staff:
+            if user.is_staff and user.is_active:
                 auth_login(request, user)
-                response = redirect('/admin/')
-                response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+                if not request.POST.get('remember_me'):
+                    request.session.set_expiry(0)
+                else:
+                    request.session.set_expiry(1209600)
+
+                next_url = request.POST.get('next') or request.GET.get('next')
+                if not next_url or next_url in ['/admin/', '/admin/login/', '/admin']:
+                    if has_admin_permission(user, 'dashboard'):
+                        next_url = '/admin/dashboard/'
+                    else:
+                        next_url = get_first_allowed_admin_url(user)
+                elif next_url.startswith('/admin/dashboard') and not has_admin_permission(user, 'dashboard'):
+                    next_url = get_first_allowed_admin_url(user)
+
+                response = redirect(next_url)
+                response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0, private'
                 return response
             else:
                 form.add_error(None, "You do not have staff permissions to access the admin portal.")
     else:
         form = AuthenticationForm(request)
 
+    next_url = request.GET.get('next', '') or request.POST.get('next', '')
+    if next_url in ['/admin/', '/admin/login/', '/admin', '']:
+        next_url = '/admin/dashboard/'
+
     context = {
         'form': form,
         'app_path': request.get_full_path(),
-        'username': request.user.get_username() if request.user.is_authenticated else '',
+        'username': '',
         'title': 'Log in',
+        'next': next_url,
     }
     if extra_context:
         context.update(extra_context)
 
     response = render(request, 'admin/login.html', context)
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0, private'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
     return response
+
+admin.site.index = custom_admin_dashboard
+admin.site.login = custom_admin_login
+admin.site.logout = custom_logout
+
+# Custom branding for Django Admin
+admin.site.site_header = "Moxie Admin Portal"
+admin.site.site_title = "Moxie Admin Portal"
+admin.site.index_title = "Welcome to Moxie Admin Portal"
 
 
 # ==============================================================================
 # Custom Admin Pages
 # ==============================================================================
-@staff_member_required(login_url='admin:login')
+@admin_permission_required('offers')
 def custom_admin_offers(request):
-    offers = Offer.objects.prefetch_related('applicable_categories', 'applicable_products').all()
+    now = timezone.now()
+    offers = Offer.objects.prefetch_related('applicable_categories', 'applicable_products').all().order_by('-created_at')
     offers_data = []
     for o in offers:
+        status_str = get_offer_status(o, now)
+        schedule_str = ''
+        if o.start_datetime and o.end_datetime:
+            local_start = timezone.localtime(o.start_datetime)
+            local_end = timezone.localtime(o.end_datetime)
+            schedule_str = f"From: {local_start.strftime('%d %b %Y, %I:%M %p')}\nTo: {local_end.strftime('%d %b %Y, %I:%M %p')}"
+        elif o.start_date and o.end_date:
+            schedule_str = f"From: {o.start_date.strftime('%d %b %Y')}\nTo: {o.end_date.strftime('%d %b %Y')}"
+
+        offer_text = o.name or o.title or o.description or ''
+
         offers_data.append({
             'id': o.id,
             'name': o.name,
             'title': o.title or '',
             'description': o.description or '',
+            'offer_text': offer_text,
+            'status': status_str,
+            'schedule': schedule_str,
             'discount_type': o.discount_type,
             'start_date': str(o.start_date) if o.start_date else '',
             'end_date': str(o.end_date) if o.end_date else '',
-            'start_datetime': o.start_datetime.isoformat() if o.start_datetime else '',
-            'end_datetime': o.end_datetime.isoformat() if o.end_datetime else '',
+            'start_datetime': timezone.localtime(o.start_datetime).isoformat() if o.start_datetime else '',
+            'end_datetime': timezone.localtime(o.end_datetime).isoformat() if o.end_datetime else '',
             'is_active': o.is_active,
+            'isActive': o.is_active,
             'applicable_categories': [c.id for c in o.applicable_categories.all()],
             'applicable_products': [p.id for p in o.applicable_products.all()],
         })
@@ -196,7 +247,7 @@ def custom_admin_offers(request):
     return render(request, 'admin/offers.html', context)
 
 
-@staff_member_required(login_url='admin:login')
+@admin_permission_required('orders')
 def custom_admin_orders(request):
     orders = Order.objects.prefetch_related('items__product').order_by('-created_at')
     orders_list = []
@@ -233,7 +284,7 @@ def custom_admin_orders(request):
     return render(request, 'admin/orders.html', context)
 
 
-@staff_member_required(login_url='admin:login')
+@admin_permission_required('customers')
 def custom_admin_customers(request):
     customers = User.objects.filter(is_staff=False).order_by('-date_joined')
     cust_list = []
@@ -255,8 +306,12 @@ def custom_admin_customers(request):
             'email': u.email or 'customer@example.com',
             'mobile': mobile,
             'isActive': u.is_active,
+            'is_active': u.is_active,
             'lastLogin': u.last_login.strftime('%d %b %Y, %I:%M %p') if u.last_login else 'Never',
-            'createdAt': u.date_joined.strftime('%d %b %Y') if u.date_joined else '',
+            'last_login': u.last_login.strftime('%d %b %Y, %I:%M %p') if u.last_login else 'Never',
+            'createdAt': u.date_joined.strftime('%d %b %Y, %I:%M %p') if u.date_joined else '—',
+            'created_at': u.date_joined.strftime('%d %b %Y, %I:%M %p') if u.date_joined else '—',
+            'date_joined': u.date_joined.strftime('%d %b %Y, %I:%M %p') if u.date_joined else '—',
             'orders_count': orders_count,
             'completed_orders_count': completed_orders,
             'total_spent': spent,
@@ -273,7 +328,7 @@ def custom_admin_customers(request):
     return render(request, 'admin/customers.html', context)
 
 
-@staff_member_required(login_url='admin:login')
+@admin_permission_required('admin_users')
 def custom_admin_users(request):
     staff_users = User.objects.filter(is_staff=True).order_by('-date_joined')
     admins_list = []
@@ -307,7 +362,7 @@ def custom_admin_users(request):
     return render(request, 'admin/users.html', context)
 
 
-@staff_member_required(login_url='admin:login')
+@admin_permission_required('settings')
 def custom_admin_settings(request):
     u = request.user
     mobile = ''
@@ -336,7 +391,7 @@ def custom_admin_settings(request):
     return render(request, 'admin/settings.html', context)
 
 
-@staff_member_required(login_url='admin:login')
+@staff_member_required(login_url='/admin/')
 def custom_admin_profile(request):
     u = request.user
     mobile = ''
@@ -369,7 +424,7 @@ def custom_admin_profile(request):
     return render(request, 'admin/profile.html', context)
 
 
-@staff_member_required(login_url='admin:login')
+@admin_permission_required('messages')
 def custom_admin_messages(request):
     context = {
         'title': 'Messages & Notifications',
@@ -377,9 +432,43 @@ def custom_admin_messages(request):
     return render(request, 'admin/messages.html', context)
 
 
+@admin_permission_required('products')
+def redirect_to_products(request):
+    query = request.META.get('QUERY_STRING')
+    target = '/admin/products/product/'
+    if query:
+        target += f'?{query}'
+    return redirect(target)
+
+@admin_permission_required('categories')
+def redirect_to_categories(request):
+    query = request.META.get('QUERY_STRING')
+    target = '/admin/categories/category/'
+    if query:
+        target += f'?{query}'
+    return redirect(target)
+
+@admin_permission_required('banners')
+def redirect_to_banners(request):
+    query = request.META.get('QUERY_STRING')
+    target = '/admin/banners/banner/'
+    if query:
+        target += f'?{query}'
+    return redirect(target)
+
+@admin_permission_required('reviews')
+def custom_admin_reviews(request):
+    model_admin = admin.site._registry.get(Review)
+    if model_admin:
+        return model_admin.changelist_view(request)
+    return redirect('/admin/products/review/')
+
+
 urlpatterns = [
+    path('admin/', custom_admin_login, name='admin_entry'),
     path('admin/login/', custom_admin_login, name='custom_admin_login'),
     path('admin/logout/', custom_logout, name='custom_logout'),
+    path('admin/dashboard/', custom_admin_dashboard, name='custom_admin_dashboard'),
     path('admin/offers/', custom_admin_offers, name='custom_admin_offers'),
     path('admin/orders/', custom_admin_orders, name='custom_admin_orders'),
     path('admin/customers/', custom_admin_customers, name='custom_admin_customers'),
@@ -387,6 +476,14 @@ urlpatterns = [
     path('admin/settings/', custom_admin_settings, name='custom_admin_settings'),
     path('admin/profile/', custom_admin_profile, name='custom_admin_profile'),
     path('admin/messages/', custom_admin_messages, name='custom_admin_messages'),
+    path('admin/products/add/', admin_permission_required('products')(lambda r: redirect('/admin/products/product/add/'))),
+    path('admin/products/', redirect_to_products, name='custom_admin_products_redirect'),
+    path('admin/categories/add/', admin_permission_required('categories')(lambda r: redirect('/admin/categories/category/?add=1'))),
+    path('admin/categories/', redirect_to_categories, name='custom_admin_categories_redirect'),
+    path('admin/banners/add/', admin_permission_required('banners')(lambda r: redirect('/admin/banners/banner/?add=1'))),
+    path('admin/banners/', redirect_to_banners, name='custom_admin_banners_redirect'),
+    path('admin/review/', custom_admin_reviews, name='custom_admin_review'),
+    path('admin/reviews/', custom_admin_reviews, name='custom_admin_reviews'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
@@ -397,3 +494,9 @@ if settings.DEBUG:
         settings.MEDIA_URL,
         document_root=settings.MEDIA_ROOT
     )
+    urlpatterns += static(
+        settings.STATIC_URL,
+        document_root=settings.STATICFILES_DIRS[0]
+    )
+
+handler403 = 'api.permissions_utils.custom_permission_denied_view'

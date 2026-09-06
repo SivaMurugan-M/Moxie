@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import { WishlistContext } from "../../context/WishlistContext";
 import { useToast } from "../../context/ToastContext";
+import { useData } from "../../context/DataContext";
 import "./Cart.css";
 
 import watchImg from "../../assets/images/watch1.png";
@@ -23,7 +24,13 @@ const getFallbackImage = (category, name) => {
 function Cart() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useContext(CartContext);
   const { addToWishlist } = useContext(WishlistContext);
+  const { storeSettings } = useData();
   const toast = useToast();
+
+  const enableTax = Boolean(storeSettings?.enable_tax);
+  const taxRate = enableTax ? (parseFloat(storeSettings?.tax_rate) || 0) : 0;
+  const taxIncluded = enableTax ? Boolean(storeSettings?.tax_included) : false;
+  const taxType = storeSettings?.tax_type || "GST";
 
   const calculateSubtotal = () => {
     return cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -33,8 +40,18 @@ function Cart() {
   const originalTotal = cart.reduce((acc, item) => acc + (item.oldPrice || item.price) * item.quantity, 0);
   const discount = originalTotal - subtotal;
   
-  // Free Shipping for everyone in Shopping Cart
-  const total = subtotal;
+  let taxAmount = 0;
+  let total = subtotal;
+
+  if (enableTax && taxRate > 0) {
+    if (taxIncluded) {
+      taxAmount = Math.round((subtotal * taxRate / (100 + taxRate)) * 100) / 100;
+      total = subtotal;
+    } else {
+      taxAmount = Math.round((subtotal * taxRate / 100) * 100) / 100;
+      total = subtotal + taxAmount;
+    }
+  }
 
   return (
     <div className="container py-5 cart-page-section">
@@ -132,6 +149,15 @@ function Cart() {
                 <span className="text-muted">Shipping Fee</span>
                 <span className="fw-semibold text-dark">Rs. 0.00</span>
               </div>
+
+              {enableTax && taxRate > 0 && (
+                <div className="summary-row d-flex justify-content-between mb-3">
+                  <span className="text-muted">{taxIncluded ? `Includes ${taxType} (${taxRate}%)` : `${taxType} (${taxRate}%)`}</span>
+                  <span className={taxIncluded ? "fw-semibold text-muted" : "fw-semibold text-dark"}>
+                    {taxIncluded ? `Rs. ${taxAmount.toLocaleString("en-IN")}.00` : `+ Rs. ${taxAmount.toLocaleString("en-IN")}.00`}
+                  </span>
+                </div>
+              )}
 
               <hr className="my-4" />
 

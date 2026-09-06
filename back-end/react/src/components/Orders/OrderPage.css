@@ -128,6 +128,58 @@
   min-width: 280px;
 }
 
+.order-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 280px;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.order-search-box:focus-within {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.order-search-icon {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.order-search-input,
+#content .order-search-input,
+.order-search-box input.order-search-input {
+  width: 100% !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+  font-family: inherit !important;
+}
+
+.order-search-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
 .search-input-wrapper {
   position: relative;
   width: 100%;
@@ -473,10 +525,41 @@
   color: #0f172a;
 }
 
-/* Status Change Box */
+/* Status Change Grid */
+.status-update-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: flex-end;
+  background: #ffffff;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+}
+
+.status-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.status-form-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.status-action-group {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .status-update-box {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 12px;
   background: #ffffff;
   padding: 12px 16px;
@@ -495,19 +578,41 @@
 }
 
 .btn-update-status {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: #4f46e5;
   color: #ffffff;
   border: none;
-  padding: 8.5px 18px;
+  padding: 0 20px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s;
+  white-space: nowrap;
+  box-sizing: border-box;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
 }
 
-.btn-update-status:hover {
+.btn-update-status:hover:not(:disabled) {
   background: #4338ca;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+}
+
+.btn-update-status:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .status-update-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .status-action-group .btn-update-status {
+    width: 100%;
+  }
 }
 
 /* Order Items Table in Modal */
@@ -616,6 +721,25 @@
   border-bottom-color: #263244;
 }
 
+[data-theme="dark"] .order-search-box {
+  background-color: #182133;
+  border-color: #2A3649;
+}
+
+[data-theme="dark"] .order-search-input,
+[data-theme="dark"] #content .order-search-input,
+[data-theme="dark"] .order-search-box input.order-search-input {
+  color: #F8FAFC !important;
+}
+
+[data-theme="dark"] .order-search-input::placeholder {
+  color: #64748b;
+}
+
+[data-theme="dark"] .order-search-icon {
+  color: #64748b;
+}
+
 [data-theme="dark"] .search-input-wrapper input {
   background-color: #182133;
   border-color: #2A3649;
@@ -707,9 +831,14 @@
   color: #F8FAFC;
 }
 
+[data-theme="dark"] .status-update-grid,
 [data-theme="dark"] .status-update-box {
   background: #182133;
   border-color: #263244;
+}
+
+[data-theme="dark"] .status-form-label {
+  color: #94A3B8;
 }
 
 [data-theme="dark"] .status-update-box select {

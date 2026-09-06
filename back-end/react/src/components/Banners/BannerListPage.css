@@ -1,11 +1,11 @@
 .banner-list-shell {
+  width: 100%;
+  max-width: none;
+  padding: 16px 24px 28px;
+  box-sizing: border-box;
   font-family: inherit;
   color: #0f172a;
-  padding: 20px 24px 28px;
-  background-color: #f8fafc;
-  min-height: calc(100vh - 60px);
-  width: 100%;
-  box-sizing: border-box;
+  background-color: transparent;
 }
 
 /* Page Header */
@@ -36,23 +36,28 @@
 .btn-add-banner {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
   background-color: #4f46e5;
   color: #ffffff !important;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 10px;
   text-decoration: none;
-  box-shadow: 0 3px 10px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.22);
   transition: all 0.2s ease;
   border: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
 .btn-add-banner:hover {
   background-color: #4338ca;
   transform: translateY(-1px);
-  box-shadow: 0 5px 14px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.32);
 }
 
 /* Stat Cards Grid */
@@ -155,38 +160,56 @@
   background-color: #ffffff;
 }
 
-.search-input-wrapper {
+.banner-search-box {
   position: relative;
-  width: 100%;
-  max-width: 280px;
-}
-
-.search-input-wrapper svg {
-  position: absolute;
-  left: 11px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  pointer-events: none;
-}
-
-.search-input-wrapper input {
-  width: 100%;
-  height: 36px;
-  padding: 6px 12px 6px 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  font-size: 13px;
-  outline: none;
-  background-color: #ffffff;
-  color: #0f172a;
-  transition: border-color 0.2s, background-color 0.2s;
+  width: 100%;
+  max-width: 300px;
   box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.search-input-wrapper input:focus {
+.banner-search-box:focus-within {
   border-color: #4f46e5;
-  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.banner-search-icon {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.banner-search-input,
+#content .banner-search-input,
+.banner-search-box input.banner-search-input {
+  width: 100% !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+  font-family: inherit !important;
+}
+
+.banner-search-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
 }
 
 .filter-select {
@@ -209,21 +232,64 @@
 
 .banner-table th {
   background-color: #ffffff;
-  color: #475569;
+  color: #64748b;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 12px 18px;
+  padding: 14px 20px;
   border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .banner-table td {
-  padding: 12px 18px;
+  padding: 14px 20px;
   border-bottom: 1px solid #f1f5f9;
   font-size: 13.5px;
   color: #334155;
   vertical-align: middle;
+}
+
+/* Specific Column Widths & Alignments */
+.banner-table th:nth-child(1),
+.banner-table td:nth-child(1) {
+  width: 130px;
+  min-width: 130px;
+}
+
+.banner-table th:nth-child(2),
+.banner-table td:nth-child(2) {
+  min-width: 200px;
+}
+
+.banner-table th:nth-child(3),
+.banner-table td:nth-child(3) {
+  min-width: 180px;
+  white-space: nowrap;
+}
+
+.banner-table th:nth-child(4),
+.banner-table td:nth-child(4) {
+  width: 120px;
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+.banner-table th:nth-child(5),
+.banner-table td:nth-child(5) {
+  width: 130px;
+  min-width: 130px;
+  white-space: nowrap;
+}
+
+.banner-table th:nth-child(6),
+.banner-table td:nth-child(6) {
+  width: 130px;
+  min-width: 130px;
+  text-align: right;
+  padding-right: 20px;
+  white-space: nowrap;
 }
 
 .banner-table tbody tr {

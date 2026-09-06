@@ -396,47 +396,32 @@ export default function DashboardPage() {
         products={analyticsData.product_performance}
       />
 
-      {/* 4. Two Independent Vertical Columns Analysis Layout */}
+      {/* 4. Category Performance & Inventory Analytics (Equal Height with internal scroll) */}
       <div
-        className="dashboard-analysis-layout"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
           gap: '16px',
-          alignItems: 'start',
+          alignItems: 'stretch',
           marginBottom: '16px'
         }}
       >
-        {/* Left Analysis Column */}
-        <div
-          className="dashboard-left-column"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            minWidth: 0,
-            alignSelf: 'start'
-          }}
-        >
-          <CategoryPerformanceCard categories={analyticsData.category_analytics} />
-        </div>
+        <CategoryPerformanceCard categories={analyticsData.category_analytics} />
+        <InventoryAnalyticsCard inventory={analyticsData.inventory} />
+      </div>
 
-        {/* Right Analysis Column - Independent Vertical Stack */}
-        <div
-          className="dashboard-right-column"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            width: '100%',
-            minWidth: 0,
-            alignSelf: 'start'
-          }}
-        >
-          <InventoryAnalyticsCard inventory={analyticsData.inventory} />
-          <BestSellingProductsCard bestSellers={analyticsData.best_and_worst?.best_sellers} />
-          <LowestSellingProductsCard lowestSellers={analyticsData.best_and_worst?.lowest_sellers} />
-        </div>
+      {/* 5. Best & Lowest Selling Products (Equal Height with internal scroll) */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gap: '16px',
+          alignItems: 'stretch',
+          marginBottom: '16px'
+        }}
+      >
+        <BestSellingProductsCard bestSellers={analyticsData.best_and_worst?.best_sellers} />
+        <LowestSellingProductsCard lowestSellers={analyticsData.best_and_worst?.lowest_sellers} />
       </div>
 
       {/* 6. Quick Catalog Administration */}
@@ -505,7 +490,7 @@ export default function DashboardPage() {
             Add Product
           </a>
           <a
-            href="/admin/categories/add/"
+            href="/admin/categories/category/?add=1"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -543,7 +528,7 @@ export default function DashboardPage() {
             Add Category
           </a>
           <a
-            href="/admin/banners/?add=1"
+            href="/admin/banners/banner/?add=1"
             style={{
               display: 'flex',
               flexDirection: 'column',

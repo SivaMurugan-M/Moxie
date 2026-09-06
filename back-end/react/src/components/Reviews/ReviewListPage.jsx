@@ -115,6 +115,11 @@ export default function ReviewListPage() {
 
       if (res.ok) {
         showToast('Status Updated', `Review status changed to ${newStatus}.`)
+        if (typeof window.refreshAdminNotifications === 'function') {
+          window.refreshAdminNotifications()
+        } else {
+          window.dispatchEvent(new CustomEvent('adminNotificationRequestRefresh'))
+        }
       } else {
         showToast('Error', 'Failed to update review status.', true)
       }
@@ -148,6 +153,11 @@ export default function ReviewListPage() {
 
       setDynamicList(prev => prev.filter(r => String(r.id) !== String(target.id)))
       showToast('Deleted', 'Review deleted successfully.')
+      if (typeof window.refreshAdminNotifications === 'function') {
+        window.refreshAdminNotifications()
+      } else {
+        window.dispatchEvent(new CustomEvent('adminNotificationRequestRefresh'))
+      }
       setIsDeleting(false)
       setDeleteTarget(null)
       if (viewTarget && viewTarget.id === target.id) {
@@ -159,6 +169,33 @@ export default function ReviewListPage() {
       setDeleteTarget(null)
     }
   }
+
+  const rowStatusOptions = [
+    {
+      value: 'Approved',
+      label: 'Approved',
+      dotColor: '#16a34a',
+      color: '#15803d',
+      bg: '#ecfdf5',
+      border: '1.5px solid #a7f3d0'
+    },
+    {
+      value: 'Pending',
+      label: 'Pending',
+      dotColor: '#f59e0b',
+      color: '#b45309',
+      bg: '#fffbeb',
+      border: '1.5px solid #fde68a'
+    },
+    {
+      value: 'Rejected',
+      label: 'Not Approved',
+      dotColor: '#ef4444',
+      color: '#b91c1c',
+      bg: '#fef2f2',
+      border: '1.5px solid #fca5a5'
+    }
+  ]
 
   return (
     <div className="review-list-shell">
@@ -225,8 +262,8 @@ export default function ReviewListPage() {
       <div className="review-table-card">
         {/* Table Filter Bar */}
         <div className="table-filter-bar">
-          <div className="search-input-wrapper">
-            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
+          <div className="review-search-box">
+            <span className="review-search-icon">
               <AppIcon icon={SearchIcon} size={16} />
             </span>
             <input
@@ -234,7 +271,7 @@ export default function ReviewListPage() {
               placeholder="Search reviews..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              style={{ paddingLeft: '36px' }}
+              className="review-search-input"
             />
           </div>
 
@@ -249,7 +286,8 @@ export default function ReviewListPage() {
               { value: '2', label: '2 Stars (★★☆☆☆)' },
               { value: '1', label: '1 Star (★☆☆☆☆)' }
             ]}
-            minWidth="140px"
+            height="42px"
+            width="100%"
           />
 
           <CustomSelect
@@ -257,11 +295,12 @@ export default function ReviewListPage() {
             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
             options={[
               { value: 'all', label: 'All Status' },
-              { value: 'Approved', label: 'Approved' },
-              { value: 'Pending', label: 'Pending' },
-              { value: 'Rejected', label: 'Rejected' }
+              { value: 'Approved', label: 'Approved', dotColor: '#16a34a' },
+              { value: 'Pending', label: 'Pending', dotColor: '#f59e0b' },
+              { value: 'Rejected', label: 'Not Approved', dotColor: '#ef4444' }
             ]}
-            minWidth="130px"
+            height="42px"
+            width="100%"
           />
 
           <CustomSelect
@@ -271,99 +310,115 @@ export default function ReviewListPage() {
               { value: 'all', label: 'All Products' },
               ...productsList.map(p => ({ value: p.id, label: p.name }))
             ]}
-            minWidth="150px"
+            height="42px"
+            width="100%"
           />
         </div>
 
         {/* Table */}
-        <table className="review-table">
-          <thead>
-            <tr>
-              <th>CUSTOMER</th>
-              <th>PRODUCT</th>
-              <th>RATING</th>
-              <th>COMMENT</th>
-              <th>STATUS</th>
-              <th>DATE</th>
-              <th style={{ textAlign: 'right' }}>ACTIONS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.length > 0 ? (
-              currentItems.map(item => (
-                <tr key={item.id}>
-                  <td>
-                    <div className="customer-cell">
-                      <div className="customer-avatar">
-                        {(item.customerName || 'C')[0].toUpperCase ? (item.customerName || 'C')[0].toUpperCase() : 'C'}
+        <div className="review-table-wrapper">
+          <table className="review-table">
+            <thead>
+              <tr>
+                <th>CUSTOMER</th>
+                <th>PRODUCT</th>
+                <th>RATING</th>
+                <th>COMMENT</th>
+                <th style={{ textAlign: 'center' }}>STATUS</th>
+                <th style={{ textAlign: 'center' }}>DATE</th>
+                <th style={{ textAlign: 'center' }}>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.length > 0 ? (
+                currentItems.map(item => (
+                  <tr key={item.id}>
+                    <td>
+                      <div className="customer-cell">
+                        <div className="customer-avatar">
+                          {(item.customerName || 'C')[0].toUpperCase ? (item.customerName || 'C')[0].toUpperCase() : 'C'}
+                        </div>
+                        <div className="customer-info">
+                          <span className="customer-name">{item.customerName}</span>
+                          <span className="customer-email">{item.customerEmail}</span>
+                        </div>
                       </div>
-                      <div className="customer-info">
-                        <span className="customer-name">{item.customerName}</span>
-                        <span className="customer-email">{item.customerEmail}</span>
+                    </td>
+                    <td>
+                      <span className="product-name-text">{item.productName}</span>
+                    </td>
+                    <td>
+                      <span className="star-rating-row">{renderStars(item.rating)}</span>
+                    </td>
+                    <td>
+                      <span className="comment-text">{item.comment}</span>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <div style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                        <CustomSelect
+                          value={item.status || 'Approved'}
+                          onChange={(e, val) => handleStatusChange(item.id, val || e.target.value)}
+                          options={rowStatusOptions}
+                          height="32px"
+                          width="154px"
+                          minWidth="154px"
+                          buttonStyle={{
+                            height: '32px',
+                            borderRadius: '8px',
+                            padding: '0 8px',
+                            fontSize: '12px',
+                            fontWeight: '600'
+                          }}
+                          menuStyle={{
+                            minWidth: '154px'
+                          }}
+                        />
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="product-name-text">{item.productName}</span>
-                  </td>
-                  <td>
-                    <span className="star-rating-row">{renderStars(item.rating)}</span>
-                  </td>
-                  <td>
-                    <span className="comment-text">{item.comment}</span>
-                  </td>
-                  <td>
-                    <select
-                      value={item.status || 'Approved'}
-                      onChange={(e) => handleStatusChange(item.id, e.target.value)}
-                      className={`status-select-pill ${(item.status || 'Approved').toLowerCase()}`}
-                    >
-                      <option value="Approved" style={{ background: '#fff', color: '#0f172a' }}>Approved</option>
-                      <option value="Pending" style={{ background: '#fff', color: '#0f172a' }}>Pending</option>
-                      <option value="Rejected" style={{ background: '#fff', color: '#0f172a' }}>Not Approved</option>
-                    </select>
-                  </td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    <span style={{ fontSize: '13px', color: '#64748b', whiteSpace: 'nowrap' }}>{item.dateStr}</span>
-                  </td>
-                  <td>
-                    <div className="actions-cell" style={{ justifyContent: 'flex-end', gap: '8px' }}>
-                      {/* View Button (Eye Icon) */}
-                      <button
-                        type="button"
-                        onClick={() => setViewTarget(item)}
-                        className="action-btn"
-                        title="View review details"
-                        aria-label="View review details"
-                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        <AppIcon icon={ViewIcon} size={15} />
-                      </button>
+                    </td>
+                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: '13px', color: '#64748b', whiteSpace: 'nowrap' }}>{item.dateStr}</span>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <div className="actions-cell">
+                        {/* View Button (Eye Icon) */}
+                        <button
+                          type="button"
+                          onClick={() => setViewTarget(item)}
+                          className="action-btn"
+                          title="View review details"
+                          aria-label="View review details"
+                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <AppIcon icon={ViewIcon} size={15} />
+                        </button>
 
-                      {/* Delete Button (Trash Icon) */}
-                      <button
-                        type="button"
-                        onClick={() => setDeleteTarget(item)}
-                        className="action-btn delete"
-                        title="Delete review"
-                        aria-label="Delete review"
-                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        <AppIcon icon={DeleteIcon} size={15} />
-                      </button>
+                        {/* Delete Button (Trash Icon) */}
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget(item)}
+                          className="action-btn delete"
+                          title="Delete review"
+                          aria-label="Delete review"
+                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <AppIcon icon={DeleteIcon} size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="review-empty-state-cell">
+                    <div className="review-empty-state">
+                      <p>No reviews found.</p>
                     </div>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-                  No reviews found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
 
         {/* Footer & Pagination */}
         <div className="table-footer-bar">

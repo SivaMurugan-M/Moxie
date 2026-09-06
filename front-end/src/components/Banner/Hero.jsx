@@ -93,6 +93,54 @@ const slides = [
   },
 ];
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = String(url).toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".m4v") ||
+    lower.includes("/video/") ||
+    lower.includes(".mp4?")
+  );
+};
+
+const SLIDE_THEMES = [
+  {
+    background: "#0c0c0c",
+    textColor: "#ffffff",
+    spanColor: "#FDB101",
+    descColor: "#e2e8f0",
+    btnBackground: "#ffffff",
+    btnTextColor: "#0c0c0c",
+  },
+  {
+    background: "#f5f5f7",
+    textColor: "#000000",
+    spanColor: "#FDB101",
+    descColor: "#555555",
+    btnBackground: "#000000",
+    btnTextColor: "#ffffff",
+  },
+  {
+    background: "#FDB101",
+    textColor: "#000000",
+    spanColor: "#ffffff",
+    descColor: "#1a1a1a",
+    btnBackground: "#000000",
+    btnTextColor: "#ffffff",
+  },
+  {
+    background: "#111111",
+    textColor: "#ffffff",
+    spanColor: "#FDB101",
+    descColor: "#e2e8f0",
+    btnBackground: "#ffffff",
+    btnTextColor: "#0c0c0c",
+  },
+];
+
 function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [banners, setBanners] = useState([]);
@@ -101,11 +149,21 @@ function Hero() {
 
   useEffect(() => {
     fetch(`${API_ORIGIN}/api/banners/`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        const mappedSlides = data.map((b) => {
-          let titleElement = b.title;
-          const words = b.title.split(" ");
+        if (!Array.isArray(data) || data.length === 0) return;
+
+        const mappedSlides = data.map((b, idx) => {
+          const isVid = isVideoUrl(b.image);
+          const bannerUrl = getBannerImageUrl(b.image);
+          const theme = SLIDE_THEMES[idx % SLIDE_THEMES.length];
+
+          const rawTitle = b.title || "UPGRADE YOUR STYLE";
+          let titleElement = rawTitle;
+          const words = rawTitle.trim().split(/\s+/).filter(Boolean);
           if (words.length > 2) {
             const splitIndex = Math.ceil(words.length / 2);
             const line1 = words.slice(0, splitIndex).join(" ");
@@ -120,24 +178,25 @@ function Hero() {
           }
 
           return {
-            type: b.display_order === 1 ? "video" : "image",
+            id: b.id,
+            type: isVid ? "video" : "image",
             tag: b.subtitle || "TRENDING TECH",
             title: titleElement,
-            description: b.display_order === 1
-              ? "Discover premium watches, smart accessories and everyday essentials designed for your lifestyle."
-              : b.display_order === 3
-              ? "Shop premium watches, earbuds, shoes and everyday accessories at great prices."
-              : "Upgrade your routine with our top trending tech accessories and everyday gear.",
+            description: b.subtitle
+              ? b.subtitle
+              : (idx % 2 === 0
+                  ? "Discover premium watches, smart accessories and everyday essentials designed for your lifestyle."
+                  : "Shop premium watches, earbuds, shoes and everyday accessories at great prices."),
             buttonText: (b.button_text || "Shop Now") + " →",
-            image: getBannerImageUrl(b.image),
-            video: BannerVideo,
+            image: bannerUrl,
+            video: isVid ? bannerUrl : BannerVideo,
             link: b.button_link || "/products/watches",
-            background: b.display_order === 1 ? "#0c0c0c" : b.display_order === 3 ? "#FDB101" : b.display_order === 4 ? "#111111" : "#f5f5f7",
-            textColor: b.display_order === 1 || b.display_order === 4 ? "#ffffff" : "#000000",
-            spanColor: b.display_order === 3 ? "#ffffff" : "#FDB101",
-            descColor: b.display_order === 1 || b.display_order === 4 ? "#e2e8f0" : b.display_order === 3 ? "#1a1a1a" : "#555555",
-            btnBackground: b.display_order === 1 || b.display_order === 4 ? "#ffffff" : "#000000",
-            btnTextColor: b.display_order === 1 || b.display_order === 4 ? "#0c0c0c" : "#ffffff",
+            background: theme.background,
+            textColor: theme.textColor,
+            spanColor: theme.spanColor,
+            descColor: theme.descColor,
+            btnBackground: theme.btnBackground,
+            btnTextColor: theme.btnTextColor,
             duration: 5000,
           };
         });
@@ -150,6 +209,18 @@ function Hero() {
         setLoading(false);
       });
   }, []);
+
+  const handleBannerClick = (bannerId) => {
+    if (!bannerId) return;
+    try {
+      fetch(`${API_ORIGIN}/api/banners/${bannerId}/click/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      }).catch(() => {});
+    } catch {
+      // ignore
+    }
+  };
 
   const activeSlides = banners.length > 0 ? banners : slides;
 
@@ -252,7 +323,12 @@ function Hero() {
                       {slide.title && <h1>{slide.title}</h1>}
                       {slide.description && <p>{slide.description}</p>}
                       {slide.buttonText && (
-                        <Link to={slide.link || "/products/watches"} className="shop-btn" style={{ textDecoration: "none" }}>
+                        <Link
+                          to={slide.link || "/products/watches"}
+                          className="shop-btn"
+                          style={{ textDecoration: "none" }}
+                          onClick={() => handleBannerClick(slide.id)}
+                        >
                           {slide.buttonText}
                         </Link>
                       )}

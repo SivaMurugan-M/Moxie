@@ -1,10 +1,13 @@
 import React, { useContext } from "react";
 import { WishlistContext } from "../../context/WishlistContext";
+import { useData } from "../../context/DataContext";
 import "./WishlistButton.css";
 
 function WishlistButton({ product, className = "" }) {
   const { toggleWishlist, isInWishlist } = useContext(WishlistContext);
+  const { storeSettings } = useData();
   
+  if (storeSettings?.allow_wishlist === false) return null;
   if (!product) return null;
   const isLiked = isInWishlist(product.id);
 

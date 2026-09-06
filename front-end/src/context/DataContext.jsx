@@ -32,13 +32,44 @@ const getFallbackImage = (categorySlug) => {
 export const DataProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [storeSettings, setStoreSettings] = useState({
+    maintenance_mode: false,
+    allow_registration: true,
+    allow_guest_browsing: true,
+    allow_guest_checkout: true,
+    require_login_before_checkout: false,
+    allow_reviews: true,
+    allow_wishlist: true,
+    enable_stock_management: true,
+    low_stock_alert: true,
+    min_stock_threshold: 5,
+    store_name: "Moxie",
+    store_logo: null,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch(`${API_URL}/public-settings/`);
+      if (res.ok) {
+        const data = await res.json();
+        setStoreSettings(data);
+        return data;
+      }
+    } catch (e) {
+      console.warn("Failed to fetch public settings:", e);
+    }
+    return null;
+  };
 
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
+      // Fetch public store settings
+      await fetchSettings();
+
       // Fetch categories from backend API
       const catData = await getCategories();
       setCategories(catData || []);
@@ -67,6 +98,24 @@ export const DataProvider = ({ children }) => {
         const salePrice = p.discount_price ? Number(p.discount_price) : originalPrice;
         const discount = p.discount_price ? Math.round((1 - (salePrice / originalPrice)) * 100) : 0;
 
+        // Map variants if available
+        const mappedVariants = (p.variants || []).map((v) => {
+          const vImages = Array.isArray(v.images)
+            ? v.images.map((img) => getImageUrl(typeof img === 'string' ? img : img.image)).filter(Boolean)
+            : [];
+          return {
+            id: v.id,
+            color_name: v.color_name,
+            color_code: v.color_code,
+            price: v.price ? Number(v.price) : salePrice,
+            discount_price: v.discount_price ? Number(v.discount_price) : null,
+            stock: Number(v.stock !== undefined ? v.stock : 0),
+            sizes: Array.isArray(v.sizes) ? v.sizes : [],
+            is_active: v.is_active !== undefined ? v.is_active : true,
+            images: vImages.length > 0 ? vImages : finalImages,
+          };
+        });
+
         return {
           id: p.id,
           name: p.name,
@@ -80,7 +129,10 @@ export const DataProvider = ({ children }) => {
           reviewCount: 30 + (p.id % 7) * 28, // simulated reviewCount
           image: finalImage,
           images: finalImages,
-          stock: p.stock > 0,
+          stock: Number(p.stock !== undefined ? p.stock : 0),
+          rawStock: Number(p.stock !== undefined ? p.stock : 0),
+          is_active: p.is_active !== undefined ? p.is_active : true,
+          variants: mappedVariants,
           isNew: index % 4 === 0 || p.id > 20,
           specifications: {
             Brand: "Moxie",
@@ -105,7 +157,15 @@ export const DataProvider = ({ children }) => {
   }, []);
 
   return (
-    <DataContext.Provider value={{ products, categories, loading, error, refreshData: loadData }}>
+    <DataContext.Provider value={{
+      products,
+      categories,
+      storeSettings,
+      refreshSettings: fetchSettings,
+      loading,
+      error,
+      refreshData: loadData
+    }}>
       {children}
     </DataContext.Provider>
   );

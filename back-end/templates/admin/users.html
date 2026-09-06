@@ -10,7 +10,7 @@
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-    <a href="{% url 'admin:index' %}">Dashboard</a>
+    <a href="{{ first_allowed_url|default:'/admin/dashboard/' }}">Dashboard</a>
     <span class="breadcrumb-separator">&rsaquo;</span>
     <span class="current-page">Admin Users</span>
 </div>

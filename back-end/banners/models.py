@@ -14,6 +14,8 @@ class Banner(models.Model):
 
     display_order = models.PositiveIntegerField(default=0)
 
+    click_count = models.PositiveIntegerField(default=0)
+
     is_active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

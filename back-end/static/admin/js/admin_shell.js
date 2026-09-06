@@ -13,130 +13,272 @@ document.addEventListener('click', function (e) {
 // Global Admin Search Handler
 (function () {
     const searchInput = document.getElementById('admin-search');
-    const searchForm = document.getElementById('admin-search-form');
-    const searchSubmit = document.getElementById('admin-search-submit');
+    const searchClear = document.getElementById('admin-search-clear');
     const searchDropdown = document.getElementById('admin-search-dropdown');
+    const searchWrap = document.querySelector('.header-search-wrap');
 
-    if (!searchInput) return;
+    if (!searchInput || !searchDropdown) return;
 
-    // Preserve current search query in input box if 'q' param exists in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentQ = urlParams.get('q');
-    if (currentQ) {
-        searchInput.value = currentQ;
-    }
+    let activeIndex = -1;
+    const storefrontUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000'
+        : 'https://moxie-dev.netlify.app';
 
     // Quick navigation items map
-    const sections = [
-        { name: 'Products', url: '/admin/products/', icon: '📦' },
-        { name: 'Categories', url: '/admin/categories/', icon: '📂' },
-        { name: 'Subcategories', url: '/admin/subcategories/', icon: '📁' },
-        { name: 'Banners', url: '/admin/banners/', icon: '🖼️' },
-        { name: 'Reviews', url: '/admin/reviews/', icon: '💬' },
-        { name: 'Users', url: '/admin/auth/user/?is_staff=1', icon: '👤' },
-        { name: 'Customers', url: '/admin/auth/user/', icon: '👥' }
+    const dashboardMenus = [
+        { id: 'dashboard', name: 'Dashboard', url: '/admin/', desc: 'Admin overview, statistics & metrics', keywords: ['dashboard', 'home', 'main', 'overview', 'stats', 'analytics'], icon: '📊' },
+        { id: 'products', name: 'Products', url: '/admin/products/product/', desc: 'Manage store products, stock & inventory', keywords: ['product', 'products', 'item', 'inventory', 'stock', 'catalog'], icon: '📦' },
+        { id: 'categories', name: 'Categories', url: '/admin/categories/category/', desc: 'Product categories & collections', keywords: ['category', 'categories', 'collections', 'groups'], icon: '📂' },
+        { id: 'subcategories', name: 'Subcategories', url: '/admin/categories/subcategory/', desc: 'Subcategories & sub-groupings', keywords: ['subcategory', 'subcategories', 'sub category'], icon: '📁' },
+        { id: 'banners', name: 'Banners', url: '/admin/banners/banner/', desc: 'Promotional banners & hero carousels', keywords: ['banner', 'banners', 'slider', 'hero', 'promo'], icon: '🖼️' },
+        { id: 'reviews', name: 'Reviews', url: '/admin/products/review/', desc: 'Customer ratings, reviews & feedback', keywords: ['review', 'reviews', 'rating', 'feedback', 'stars'], icon: '💬' },
+        { id: 'offers', name: 'Offers', url: '/admin/offers/', desc: 'Discounts, coupon codes & promotions', keywords: ['offer', 'offers', 'discount', 'coupon', 'deals', 'sale'], icon: '🏷️' },
+        { id: 'orders', name: 'Orders', url: '/admin/orders/', desc: 'Customer orders, invoices & tracking', keywords: ['order', 'orders', 'purchase', 'sales', 'invoice', 'tracking'], icon: '🛍️' },
+        { id: 'customers', name: 'Customers', url: '/admin/customers/', desc: 'Registered shoppers & customer accounts', keywords: ['customer', 'customers', 'client', 'shoppers'], icon: '👥' },
+        { id: 'users', name: 'Users / Staff', url: '/admin/users/', desc: 'Admin team, staff members & roles', keywords: ['user', 'users', 'staff', 'admin', 'roles', 'permissions'], icon: '👤' },
+        { id: 'messages', name: 'Messages', url: '/admin/messages/', desc: 'Admin notifications, inquiries & alerts', keywords: ['message', 'messages', 'notification', 'alerts', 'inquiry'], icon: '✉️' },
+        { id: 'settings', name: 'Settings', url: '/admin/settings/', desc: 'Store configuration & system settings', keywords: ['setting', 'settings', 'config', 'preferences'], icon: '⚙️' },
+        { id: 'profile', name: 'My Profile', url: '/admin/profile/', desc: 'Admin user details & profile credentials', keywords: ['profile', 'my profile', 'account'], icon: '🧑‍💼' },
+        { id: 'storefront', name: 'Go to Storefront', url: storefrontUrl, isExternal: true, desc: 'Open live customer storefront', keywords: ['storefront', 'store', 'shop', 'live site'], icon: '🌐' }
     ];
 
-    function handleSearch(q) {
-        const query = (q || '').trim();
-        if (!query) return;
+    const recordSections = [
+        { name: 'Products', url: '/admin/products/product/?q=', icon: '📦', desc: 'Search products by name, SKU or tags' },
+        { name: 'Categories', url: '/admin/categories/category/?q=', icon: '📂', desc: 'Search category names' },
+        { name: 'Subcategories', url: '/admin/categories/subcategory/?q=', icon: '📁', desc: 'Search subcategories' },
+        { name: 'Banners', url: '/admin/banners/banner/?q=', icon: '🖼️', desc: 'Search promo banners' },
+        { name: 'Reviews', url: '/admin/products/review/?q=', icon: '💬', desc: 'Search customer reviews & comments' },
+        { name: 'Orders', url: '/admin/orders/?q=', icon: '🛍️', desc: 'Search orders and tracking' },
+        { name: 'Customers', url: '/admin/customers/?q=', icon: '👥', desc: 'Search customer names & emails' },
+        { name: 'Users / Staff', url: '/admin/users/?q=', icon: '👤', desc: 'Search staff & admin accounts' },
+        { name: 'Messages', url: '/admin/messages/?q=', icon: '✉️', desc: 'Search messages and inquiries' },
+        { name: 'Offers', url: '/admin/offers/?q=', icon: '🏷️', desc: 'Search discount codes & promotions' }
+    ];
 
-        const lowerQ = query.toLowerCase();
+    function escapeHtml(str) {
+        return (str || '').replace(/[&<>"']/g, function(m) {
+            return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+        });
+    }
 
-        // Direct section keyword match
-        if (lowerQ === 'profile' || lowerQ === 'my profile') { window.location.href = '/admin/profile/'; return; }
-        if (lowerQ === 'product' || lowerQ === 'products') { window.location.href = '/admin/products/'; return; }
-        if (lowerQ === 'category' || lowerQ === 'categories') { window.location.href = '/admin/categories/'; return; }
-        if (lowerQ === 'subcategory' || lowerQ === 'subcategories') { window.location.href = '/admin/subcategories/'; return; }
-        if (lowerQ === 'banner' || lowerQ === 'banners') { window.location.href = '/admin/banners/'; return; }
-        if (lowerQ === 'review' || lowerQ === 'reviews') { window.location.href = '/admin/reviews/'; return; }
-        if (lowerQ === 'user' || lowerQ === 'users') { window.location.href = '/admin/auth/user/?is_staff=1'; return; }
-        if (lowerQ === 'customer' || lowerQ === 'customers') { window.location.href = '/admin/auth/user/'; return; }
+    function highlightMatch(text, query) {
+        if (!query) return escapeHtml(text);
+        const safeText = escapeHtml(text);
+        const safeQ = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${safeQ})`, 'gi');
+        return safeText.replace(regex, '<mark class="search-highlight">$1</mark>');
+    }
 
-        // If user is currently on a specific admin list page, search within that section
-        const path = window.location.pathname;
-        if (path.includes('/admin/products/')) {
-            window.location.href = '/admin/products/?q=' + encodeURIComponent(query);
-        } else if (path.includes('/admin/categories/')) {
-            window.location.href = '/admin/categories/?q=' + encodeURIComponent(query);
-        } else if (path.includes('/admin/subcategories/')) {
-            window.location.href = '/admin/subcategories/?q=' + encodeURIComponent(query);
-        } else if (path.includes('/admin/banners/')) {
-            window.location.href = '/admin/banners/?q=' + encodeURIComponent(query);
-        } else if (path.includes('/admin/reviews/')) {
-            window.location.href = '/admin/reviews/?q=' + encodeURIComponent(query);
-        } else if (path.includes('/admin/auth/user/')) {
-            window.location.href = '/admin/auth/user/?q=' + encodeURIComponent(query);
-        } else {
-            // Default fallback search: Products
-            window.location.href = '/admin/products/?q=' + encodeURIComponent(query);
+    function updateClearBtn() {
+        if (searchClear) {
+            searchClear.style.display = searchInput.value.trim() ? 'flex' : 'none';
         }
     }
 
-    if (searchForm) {
-        searchForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            handleSearch(searchInput.value);
-        });
+    function navigateToUrl(url, isExternal) {
+        if (isExternal) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } else {
+            window.location.href = url;
+        }
     }
 
-    if (searchSubmit) {
-        searchSubmit.addEventListener('click', function () {
-            handleSearch(searchInput.value);
-        });
-    }
-
-    // Live Interactive Dropdown Preview
     function renderDropdown(q) {
         const query = (q || '').trim();
-        if (!searchDropdown) return;
+        activeIndex = -1;
+        updateClearBtn();
 
         if (!query) {
-            searchDropdown.style.display = 'none';
-            searchDropdown.innerHTML = '';
+            let html = '<div class="search-dropdown-section-title"><span>Dashboard Menus</span><span>Quick Jump</span></div>';
+            dashboardMenus.slice(0, 8).forEach(function(item) {
+                html += `
+                    <a href="${item.url}" ${item.isExternal ? 'target="_blank" rel="noopener"' : ''} class="search-dropdown-item" data-url="${item.url}" data-external="${item.isExternal ? '1' : '0'}">
+                        <div class="search-dropdown-item-icon">${item.icon}</div>
+                        <div class="search-dropdown-item-info">
+                            <div class="search-dropdown-item-title">${escapeHtml(item.name)}</div>
+                            <div class="search-dropdown-item-desc">${escapeHtml(item.desc)}</div>
+                        </div>
+                        <span class="search-dropdown-item-badge">Jump &rarr;</span>
+                    </a>
+                `;
+            });
+            searchDropdown.innerHTML = html;
+            searchDropdown.style.display = 'block';
+            attachItemEvents();
             return;
         }
 
-        let html = '<div style="padding: 8px 14px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; border-radius: 14px 14px 0 0;">Search across sections</div>';
+        const lowerQ = query.toLowerCase();
+        const matchedMenus = dashboardMenus.filter(function(item) {
+            if (item.name.toLowerCase().includes(lowerQ)) return true;
+            if (item.desc && item.desc.toLowerCase().includes(lowerQ)) return true;
+            if (item.keywords && item.keywords.some(k => k.toLowerCase().includes(lowerQ))) return true;
+            return false;
+        });
 
-        sections.forEach(function (sec) {
-            const searchUrl = sec.url.includes('?') ? sec.url + '&q=' + encodeURIComponent(query) : sec.url + '?q=' + encodeURIComponent(query);
-            html += '<a href="' + searchUrl + '" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: #1e293b; text-decoration: none; font-size: 13.5px; transition: all 0.15s ease; border-bottom: 1px solid #f8fafc;" onmouseover="this.style.background=\'#f8fafc\'; this.style.color=\'#6366f1\';" onmouseout="this.style.background=\'transparent\'; this.style.color=\'#1e293b\';">';
-            html += '<span style="font-size: 15px;">' + sec.icon + '</span>';
-            html += '<span style="color: #475569;">Search <strong style="color: #0f172a;">' + sec.name + '</strong> for "<em style="color: #6366f1; font-style: normal; font-weight: 600;">' + query + '</em>"</span>';
-            html += '</a>';
+        let html = '';
+        if (matchedMenus.length > 0) {
+            html += `<div class="search-dropdown-section-title"><span>Dashboard Pages</span><span>${matchedMenus.length} matched</span></div>`;
+            matchedMenus.forEach(function(item) {
+                html += `
+                    <a href="${item.url}" ${item.isExternal ? 'target="_blank" rel="noopener"' : ''} class="search-dropdown-item" data-url="${item.url}" data-external="${item.isExternal ? '1' : '0'}">
+                        <div class="search-dropdown-item-icon">${item.icon}</div>
+                        <div class="search-dropdown-item-info">
+                            <div class="search-dropdown-item-title">${highlightMatch(item.name, query)}</div>
+                            <div class="search-dropdown-item-desc">${highlightMatch(item.desc, query)}</div>
+                        </div>
+                        <span class="search-dropdown-item-badge">Go to Page &rarr;</span>
+                    </a>
+                `;
+            });
+        }
+
+        html += `<div class="search-dropdown-section-title"><span>Search Records for &ldquo;${escapeHtml(query)}&rdquo;</span><span>Records</span></div>`;
+        recordSections.forEach(function(sec) {
+            const searchUrl = sec.url + encodeURIComponent(query);
+            html += `
+                <a href="${searchUrl}" class="search-dropdown-item" data-url="${searchUrl}" data-external="0">
+                    <div class="search-dropdown-item-icon">${sec.icon}</div>
+                    <div class="search-dropdown-item-info">
+                        <div class="search-dropdown-item-title">Search <strong>${escapeHtml(sec.name)}</strong> for &ldquo;<span style="color: var(--purple, #6657ec);">${escapeHtml(query)}</span>&rdquo;</div>
+                        <div class="search-dropdown-item-desc">${escapeHtml(sec.desc)}</div>
+                    </div>
+                    <span class="search-dropdown-item-badge">&crarr;</span>
+                </a>
+            `;
         });
 
         searchDropdown.innerHTML = html;
         searchDropdown.style.display = 'block';
+        attachItemEvents();
     }
 
-    if (searchInput) {
-        searchInput.addEventListener('input', function () {
-            renderDropdown(this.value);
-        });
-
-        searchInput.addEventListener('focus', function () {
-            if (this.value.trim()) renderDropdown(this.value);
+    function attachItemEvents() {
+        const items = searchDropdown.querySelectorAll('.search-dropdown-item');
+        items.forEach(function(item, idx) {
+            item.addEventListener('mouseenter', function() {
+                items.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                activeIndex = idx;
+            });
+            item.addEventListener('click', function(e) {
+                const url = this.getAttribute('data-url');
+                const isExt = this.getAttribute('data-external') === '1';
+                if (url) {
+                    if (isExt) {
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                    } else {
+                        window.location.href = url;
+                    }
+                }
+            });
         });
     }
 
-    document.addEventListener('click', function (e) {
-        if (searchForm && !searchForm.contains(e.target)) {
-            if (searchDropdown) searchDropdown.style.display = 'none';
-        }
-    });
+    function handleDirectSearch(query) {
+        const q = (query || '').trim();
+        if (!q) return;
 
-    // Optional Cmd+K / Ctrl+K shortcut to focus search
-    document.addEventListener('keydown', function (e) {
-        if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
-            e.preventDefault();
-            if (searchInput) {
-                searchInput.focus();
-                searchInput.select();
+        const lowerQ = q.toLowerCase();
+
+        for (const menu of dashboardMenus) {
+            if (menu.id === lowerQ || menu.name.toLowerCase() === lowerQ || (menu.keywords && menu.keywords.includes(lowerQ))) {
+                navigateToUrl(menu.url, menu.isExternal);
+                return;
             }
         }
+
+        const activeItem = searchDropdown.querySelector('.search-dropdown-item.active');
+        if (activeItem) {
+            const url = activeItem.getAttribute('data-url');
+            const isExt = activeItem.getAttribute('data-external') === '1';
+            if (url) {
+                navigateToUrl(url, isExt);
+                return;
+            }
+        }
+
+        const path = window.location.pathname;
+        if (path.includes('/admin/products/')) {
+            window.location.href = '/admin/products/product/?q=' + encodeURIComponent(q);
+        } else if (path.includes('/admin/categories/subcategory/')) {
+            window.location.href = '/admin/categories/subcategory/?q=' + encodeURIComponent(q);
+        } else if (path.includes('/admin/categories/')) {
+            window.location.href = '/admin/categories/category/?q=' + encodeURIComponent(q);
+        } else if (path.includes('/admin/banners/')) {
+            window.location.href = '/admin/banners/banner/?q=' + encodeURIComponent(q);
+        } else if (path.includes('/admin/reviews/')) {
+            window.location.href = '/admin/products/review/?q=' + encodeURIComponent(q);
+        } else if (path.includes('/admin/orders/')) {
+            window.location.href = '/admin/orders/?q=' + encodeURIComponent(q);
+        } else if (path.includes('/admin/customers/')) {
+            window.location.href = '/admin/customers/?q=' + encodeURIComponent(q);
+        } else if (path.includes('/admin/users/')) {
+            window.location.href = '/admin/users/?q=' + encodeURIComponent(q);
+        } else if (path.includes('/admin/messages/')) {
+            window.location.href = '/admin/messages/?q=' + encodeURIComponent(q);
+        } else if (path.includes('/admin/offers/')) {
+            window.location.href = '/admin/offers/?q=' + encodeURIComponent(q);
+        } else {
+            window.location.href = '/admin/products/product/?q=' + encodeURIComponent(q);
+        }
+    }
+
+    searchInput.addEventListener('input', function() {
+        renderDropdown(this.value);
     });
+
+    searchInput.addEventListener('focus', function() {
+        renderDropdown(this.value);
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+        const items = searchDropdown.querySelectorAll('.search-dropdown-item');
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (items.length === 0) return;
+            activeIndex = (activeIndex + 1) % items.length;
+            items.forEach(i => i.classList.remove('active'));
+            items[activeIndex].classList.add('active');
+            items[activeIndex].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (items.length === 0) return;
+            activeIndex = (activeIndex - 1 + items.length) % items.length;
+            items.forEach(i => i.classList.remove('active'));
+            items[activeIndex].classList.add('active');
+            items[activeIndex].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            handleDirectSearch(searchInput.value);
+        } else if (e.key === 'Escape') {
+            searchDropdown.style.display = 'none';
+            searchInput.blur();
+        }
+    });
+
+    if (searchClear) {
+        searchClear.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            searchInput.value = '';
+            searchInput.focus();
+            renderDropdown('');
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (searchWrap && !searchWrap.contains(e.target)) {
+            searchDropdown.style.display = 'none';
+        }
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentQ = urlParams.get('q');
+    if (currentQ) {
+        searchInput.value = currentQ;
+        updateClearBtn();
+    }
 })();
 
 // Dynamic Storefront URL resolution (Localhost vs Netlify)
@@ -313,9 +455,9 @@ window.addEventListener('pageshow', function (event) {
     function getModalElements() {
         return {
             modal: document.getElementById('logout-confirm-modal'),
-            closeBtn: document.getElementById('logout-modal-close-btn'),
-            cancelBtn: document.getElementById('logout-modal-cancel-btn'),
-            confirmBtn: document.getElementById('logout-modal-confirm-btn')
+            closeBtn: document.getElementById('logout-modal-close-btn') || document.getElementById('logout-modal-cancel'),
+            cancelBtn: document.getElementById('logout-modal-cancel-btn') || document.getElementById('logout-modal-cancel'),
+            confirmBtn: document.getElementById('logout-modal-confirm-btn') || document.getElementById('logout-modal-confirm')
         };
     }
 

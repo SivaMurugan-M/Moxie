@@ -41,13 +41,21 @@ export default function ProductListPage() {
   const [addProductEditUrl, setAddProductEditUrl] = useState('')
 
   const showToast = (title, msg, isError = false) => {
+    if (window.showGlobalToast) {
+      window.showGlobalToast(title, msg, isError)
+      return
+    }
     const toast = document.getElementById('moxie-toast')
     const titleEl = document.getElementById('moxie-toast-title')
     const msgEl = document.getElementById('moxie-toast-msg')
     const icon = document.getElementById('moxie-toast-icon')
     if (!toast) return
-    toast.style.borderLeftColor = isError ? '#ef4444' : (title.includes('Delet') ? '#f97316' : '#22c55e')
-    if (icon) icon.textContent = isError ? '⚠️' : (title.includes('Delet') ? '🗑️' : '✅')
+    toast.style.borderLeftColor = isError ? '#ef4444' : '#22c55e'
+    if (icon) {
+      icon.innerHTML = isError
+        ? '<span style="color: #ef4444; font-size: 18px;">⚠️</span>'
+        : '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    }
     if (titleEl) titleEl.textContent = title
     if (msgEl) msgEl.textContent = msg
     toast.style.display = 'flex'
@@ -57,7 +65,7 @@ export default function ProductListPage() {
       toast.style.transition = 'opacity 0.4s'
       toast.style.opacity = '0'
       setTimeout(() => { toast.style.display = 'none'; toast.style.opacity = '1' }, 400)
-    }, 2000)
+    }, 3500)
   }
 
   const handleQuickAddProduct = async () => {
@@ -312,7 +320,9 @@ export default function ProductListPage() {
       {/* Header */}
       <div className="products-page-header">
         <div className="products-header-title-box">
-          <h1 className="products-page-title">Product Management</h1>
+          <h1 className="products-page-title" style={{ display: 'block', margin: '0 0 4px 0', fontSize: '26px', fontWeight: '800', color: '#0f172a', lineHeight: '1.2', letterSpacing: '-0.02em' }}>
+            Product Management
+          </h1>
           <p className="products-page-subtitle">
             Manage and track your entire product catalog, pricing, variants, and stock inventory.
           </p>
@@ -512,19 +522,7 @@ export default function ProductListPage() {
 
       {/* Product Table */}
       <div className="products-table-card">
-        <form id="changelist-form" method="post" action="">
-          <input type="hidden" name="csrfmiddlewaretoken" value={context.csrfToken} />
-          {context.hasActionForm && (
-            <div style={{ padding: '12px 20px', borderBottom: '1px solid #edf2f7', background: '#f8fafc', display: 'flex', gap: '10px', alignItems: 'center', fontSize: '12px' }}>
-              <span style={{ color: '#64748b', fontWeight: 600 }}>Actions: </span>
-              <select name="action" required style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                <option value="">---------</option>
-                <option value="delete_selected">Delete selected products</option>
-              </select>
-              <button type="submit" className="button" name="index" value="0" style={{ padding: '6px 14px', background: '#334155', color: '#fff', borderRadius: '6px', border: 0, fontWeight: 600, cursor: 'pointer' }}>Go</button>
-            </div>
-          )}
-          <div className="products-table-scroll">
+        <div className="products-table-scroll">
             <table className="products-table">
               <thead>
                 <tr>
@@ -705,7 +703,6 @@ export default function ProductListPage() {
           <div className="products-table-footer">
             <span>Showing {displayRows.length} variant row{displayRows.length !== 1 ? 's' : ''} across {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}</span>
           </div>
-        </form>
       </div>
 
       {/* Quick Availability Confirmation Modal */}
@@ -774,7 +771,7 @@ export default function ProductListPage() {
                   redirect: 'manual',
                 }).then(() => {
                   setProducts(prev => prev.filter(p => String(p.id) !== String(target.id)))
-                  showToast('Deleted successfully!!!', `"${target.name}" has been removed.`)
+                  showToast('Product deleted successfully', `"${target.name}" has been removed.`)
                 }).catch(() => showToast('Something went wrong', 'Could not delete the product. Please try again.', true))
               }} style={{ flex: 1, height: '40px', background: '#ef4444', border: 0, borderRadius: '8px', fontWeight: 700, fontSize: '13px', color: '#fff', cursor: 'pointer' }}>
                 Confirm Delete

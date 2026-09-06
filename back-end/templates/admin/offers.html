@@ -5,14 +5,14 @@
 
 {% block extrahead %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'admin/react/offers.css' %}?v=5">
+<link rel="stylesheet" href="{% static 'admin/react/offers.css' %}?v={% now 'U' %}">
 {% endblock %}
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-    <a href="{% url 'admin:index' %}">Dashboard</a>
+    <a href="{{ first_allowed_url|default:'/admin/dashboard/' }}">Dashboard</a>
     <span class="breadcrumb-separator">&rsaquo;</span>
-    <span class="current-page">Offers</span>
+    <span class="current-page">Offers & Discounts</span>
 </div>
 {% endblock %}
 {% block content_title %}{% endblock %}
@@ -46,5 +46,5 @@
     } catch(e) { window.DJANGO_CONTEXT.categoriesList = []; }
 </script>
 
-<script type="module" src="{% static 'admin/react/offers.js' %}?v=5"></script>
+<script type="module" src="{% static 'admin/react/offers.js' %}?v={% now 'U' %}"></script>
 {% endblock %}

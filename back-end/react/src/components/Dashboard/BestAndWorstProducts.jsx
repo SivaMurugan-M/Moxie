@@ -22,24 +22,27 @@ export default function BestAndWorstProducts({ bestAndWorst = {} }) {
           background: '#ffffff',
           border: '1px solid #e7ecf3',
           borderRadius: '16px',
-          padding: '18px 20px',
-          boxShadow: '0 3px 12px rgba(0,0,0,0.03)',
+          padding: '14px 16px',
+          boxShadow: '0 1px 3px rgba(15,23,42,0.03), 0 4px 12px rgba(15,23,42,0.04)',
           display: 'flex',
           flexDirection: 'column',
-          height: 'auto',
-          boxSizing: 'border-box'
+          height: '236px',
+          minHeight: '236px',
+          maxHeight: '236px',
+          boxSizing: 'border-box',
+          overflow: 'hidden'
         }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flex: '0 0 auto' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <AppIcon icon={SparklesIcon} size={17} color="#10b981" />
-              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#0f172a' }}>
+              <AppIcon icon={SparklesIcon} size={16} color="#10b981" />
+              <h2 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#0f172a' }}>
                 Best Selling Products
               </h2>
             </div>
-            <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b' }}>
+            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: '#64748b' }}>
               Top sales and high volume drivers
             </p>
           </div>
@@ -49,7 +52,7 @@ export default function BestAndWorstProducts({ bestAndWorst = {} }) {
         </div>
 
         {/* Product Rows */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', paddingRight: '3px', scrollbarWidth: 'thin' }}>
           {bestSellers.length > 0 ? (
             bestSellers.map((item, idx) => (
               <div
@@ -138,24 +141,27 @@ export default function BestAndWorstProducts({ bestAndWorst = {} }) {
           background: '#ffffff',
           border: '1px solid #e7ecf3',
           borderRadius: '16px',
-          padding: '18px 20px',
-          boxShadow: '0 3px 12px rgba(0,0,0,0.03)',
+          padding: '14px 16px',
+          boxShadow: '0 1px 3px rgba(15,23,42,0.03), 0 4px 12px rgba(15,23,42,0.04)',
           display: 'flex',
           flexDirection: 'column',
-          height: 'auto',
-          boxSizing: 'border-box'
+          height: '236px',
+          minHeight: '236px',
+          maxHeight: '236px',
+          boxSizing: 'border-box',
+          overflow: 'hidden'
         }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flex: '0 0 auto' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <AppIcon icon={CancelCircleIcon} size={17} color="#f59e0b" />
-              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#0f172a' }}>
+              <AppIcon icon={CancelCircleIcon} size={16} color="#f59e0b" />
+              <h2 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#0f172a' }}>
                 Lowest Selling Products
               </h2>
             </div>
-            <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b' }}>
+            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: '#64748b' }}>
               Slow-moving inventory items
             </p>
           </div>
@@ -165,7 +171,7 @@ export default function BestAndWorstProducts({ bestAndWorst = {} }) {
         </div>
 
         {/* Product Rows */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', paddingRight: '3px', scrollbarWidth: 'thin' }}>
           {lowestSellers.length > 0 ? (
             lowestSellers.map((item, idx) => (
               <div

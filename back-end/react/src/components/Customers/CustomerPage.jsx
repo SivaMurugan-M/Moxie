@@ -107,6 +107,11 @@ export default function CustomerPage() {
           prev.map(c => (c.id === cust.id ? { ...c, isActive: newStatus, is_active: newStatus } : c))
         )
         setSuccessMsg(`Customer ${cust.name || cust.email} is now ${newStatus ? 'Active' : 'Inactive'}.`)
+        if (typeof window.refreshAdminNotifications === 'function') {
+          window.refreshAdminNotifications()
+        } else {
+          window.dispatchEvent(new CustomEvent('adminNotificationRequestRefresh'))
+        }
       } else {
         setErrorMsg('Failed to update customer status.')
       }
@@ -131,6 +136,11 @@ export default function CustomerPage() {
         setCustomers(prev => prev.filter(c => c.id !== deletingCustomer.id))
         setSuccessMsg(`Customer account deleted successfully.`)
         setDeletingCustomer(null)
+        if (typeof window.refreshAdminNotifications === 'function') {
+          window.refreshAdminNotifications()
+        } else {
+          window.dispatchEvent(new CustomEvent('adminNotificationRequestRefresh'))
+        }
       } else {
         const data = await res.json()
         setErrorMsg(data.error || 'Failed to delete customer.')
@@ -219,8 +229,8 @@ export default function CustomerPage() {
       <div className="customer-table-card">
         {/* Filter Bar */}
         <div className="table-filter-bar">
-          <div className="search-input-wrapper">
-            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
+          <div className="customer-search-box">
+            <span className="customer-search-icon">
               <AppIcon icon={SearchIcon} size={16} />
             </span>
             <input
@@ -228,7 +238,7 @@ export default function CustomerPage() {
               placeholder="Search by name, email, phone or customer ID..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              style={{ paddingLeft: '36px' }}
+              className="customer-search-input"
             />
           </div>
 
@@ -240,29 +250,50 @@ export default function CustomerPage() {
               { value: 'active', label: 'Active Accounts' },
               { value: 'inactive', label: 'Inactive Accounts' }
             ]}
-            minWidth="150px"
+            height="38px"
+            minWidth="140px"
           />
         </div>
 
         {/* Customer Table */}
-        <div className="table-responsive">
+        <div className="customer-table-responsive-wrapper">
           <table className="customer-table">
             <thead>
               <tr>
-                <th>CUSTOMER</th>
-                <th>CONTACT</th>
-                <th>ORDERS</th>
-                <th>TOTAL SPENT</th>
-                <th>STATUS</th>
-                <th>JOINED</th>
-                <th>LAST LOGIN</th>
-                <th style={{ textAlign: 'right' }}>ACTIONS</th>
+                <th style={{ width: '20%', minWidth: '170px' }}>CUSTOMER</th>
+                <th style={{ width: '20%', minWidth: '180px' }}>CONTACT</th>
+                <th style={{ width: '9%', minWidth: '85px' }}>ORDERS</th>
+                <th style={{ width: '10%', minWidth: '100px' }}>TOTAL SPENT</th>
+                <th style={{ width: '9%', minWidth: '90px' }}>STATUS</th>
+                <th style={{ width: '14%', minWidth: '125px' }}>JOINED</th>
+                <th style={{ width: '14%', minWidth: '125px' }}>LAST LOGIN</th>
+                <th style={{ width: '8%', minWidth: '100px', textAlign: 'right' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {paginatedCustomers.length > 0 ? (
                 paginatedCustomers.map((c) => {
                   const isActive = c.isActive !== false && c.is_active !== false
+                  const joinedRaw = c.createdAt || c.created_at || c.date_joined || '—'
+                  const loginRaw = c.lastLogin || c.last_login || 'Never'
+
+                  const formatDateTime = (val) => {
+                    if (!val || val === '—' || val === 'None' || val === 'null' || val === '') {
+                      return { date: '—', time: null }
+                    }
+                    if (String(val).trim().toLowerCase() === 'never') {
+                      return { date: 'Never', time: null }
+                    }
+                    if (String(val).includes(',')) {
+                      const parts = String(val).split(',')
+                      return { date: parts[0].trim(), time: parts.slice(1).join(',').trim() }
+                    }
+                    return { date: String(val), time: null }
+                  }
+
+                  const joinedObj = formatDateTime(joinedRaw)
+                  const loginObj = formatDateTime(loginRaw)
+
                   return (
                     <tr key={c.id}>
                       <td>
@@ -270,34 +301,42 @@ export default function CustomerPage() {
                           <div className="user-avatar-circle">
                             {(c.name || c.username || c.email || 'C')[0].toUpperCase()}
                           </div>
-                          <div>
-                            <span className="customer-name-text">{c.name || c.username || 'Anonymous'}</span>
-                            <span className="customer-id-text">{c.customerId || `ID: #${c.id}`}</span>
+                          <div className="customer-name-wrapper">
+                            <span className="customer-name-text" title={c.name || c.username}>
+                              {c.name || c.username || 'Anonymous'}
+                            </span>
+                            <span className="customer-id-text">{c.customerId || `CUST-${String(c.id).padStart(4, '0')}`}</span>
                           </div>
                         </div>
                       </td>
                       <td>
-                        <div className="contact-cell">
-                          <span className="email-text">{c.email}</span>
-                          <span className="phone-text">{c.mobile || c.phone || 'No phone'}</span>
+                        <div className="customer-contact-cell">
+                          <span className="customer-email-text" title={c.email}>{c.email || '—'}</span>
+                          <span className="customer-phone-text">{c.mobile || c.phone || 'No phone'}</span>
                         </div>
                       </td>
                       <td>
-                        <span className="orders-count-badge">{c.ordersCount || 0} orders</span>
+                        <span className="orders-count-badge">{c.ordersCount ?? c.orders_count ?? 0} orders</span>
                       </td>
                       <td>
-                        <span className="total-spent-text">₹{(Number(c.totalSpent) || 0).toLocaleString('en-IN')}</span>
+                        <span className="total-spent-text">₹{(Number(c.totalSpent ?? c.total_spent) || 0).toLocaleString('en-IN')}</span>
                       </td>
                       <td>
                         <span className={`status-pill ${isActive ? 'active' : 'inactive'}`}>
                           {isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: '12.5px', color: '#64748b', whiteSpace: 'nowrap' }}>{c.createdAt || c.created_at}</span>
+                      <td>
+                        <div className="customer-date-cell">
+                          <span className="customer-date-primary">{joinedObj.date}</span>
+                          {joinedObj.time && <span className="customer-date-secondary">{joinedObj.time}</span>}
+                        </div>
                       </td>
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: '12.5px', color: '#64748b', whiteSpace: 'nowrap' }}>{c.lastLogin || c.last_login}</span>
+                      <td>
+                        <div className="customer-date-cell">
+                          <span className="customer-date-primary">{loginObj.date}</span>
+                          {loginObj.time && <span className="customer-date-secondary">{loginObj.time}</span>}
+                        </div>
                       </td>
                       <td>
                         <div className="actions-cell">
@@ -339,8 +378,8 @@ export default function CustomerPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-                    No customer records found matching search.
+                  <td colSpan="8" className="customer-empty-cell">
+                    No customers found.
                   </td>
                 </tr>
               )}

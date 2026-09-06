@@ -5,12 +5,12 @@
 
 {% block extrahead %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'admin/react/bannerList.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'admin/react/bannerList.css' %}?v={% now 'U' %}">
 {% endblock %}
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-    <a href="{% url 'admin:index' %}">Dashboard</a>
+    <a href="{{ first_allowed_url|default:'/admin/dashboard/' }}">Dashboard</a>
     <span class="breadcrumb-separator">&rsaquo;</span>
     <span class="current-page">Banners</span>
 </div>
@@ -28,21 +28,23 @@
         totalBannersCount: parseInt("{{ total_banners_count|default:0 }}"),
         activeBannersCount: parseInt("{{ active_banners_count|default:0 }}"),
         inactiveBannersCount: parseInt("{{ inactive_banners_count|default:0 }}"),
+        totalClicksCount: parseInt("{{ total_clicks_count|default:0 }}"),
         csrfToken: '{{ csrf_token }}',
         resultCount: parseInt("{{ cl.result_count|default:0 }}"),
         resultList: [
             {% for item in cl.result_list %}
-    {
-        id: "{{ item.id }}",
-            title: "{{ item.title|escapejs }}",
+            {
+                id: "{{ item.id }}",
+                title: "{{ item.title|escapejs }}",
                 subtitle: "{{ item.subtitle|escapejs }}",
-                    imageUrl: "{% if item.image %}{{ item.image.url }}{% endif %}",
-                        buttonText: "{{ item.button_text|escapejs }}",
-                            buttonLink: "{{ item.button_link|escapejs }}",
-                                displayOrder: parseInt("{{ item.display_order|default:0 }}"),
-                                    isActive: {% if item.is_active %} true{% else %} false{% endif %}
-    },
-    {% endfor %}
+                imageUrl: "{% if item.image %}{{ item.image.url }}{% endif %}",
+                buttonText: "{{ item.button_text|escapejs }}",
+                buttonLink: "{{ item.button_link|escapejs }}",
+                displayOrder: parseInt("{{ item.display_order|default:0 }}"),
+                clickCount: parseInt("{{ item.click_count|default:0 }}"),
+                isActive: {% if item.is_active %} true{% else %} false{% endif %}
+            },
+            {% endfor %}
         ],
     djangoMessages: [
         {% for message in messages %}

@@ -105,10 +105,12 @@ export default function OrderDetails({ order, onBack }) {
                 <span>Shipping Fee</span>
                 <span>₹{order.shippingCharge.toLocaleString("en-IN")}</span>
               </div>
-              <div className="d-flex justify-content-between">
-                <span>Estimated Tax (GST)</span>
-                <span>₹{order.tax.toLocaleString("en-IN")}</span>
-              </div>
+              {order.tax && order.tax > 0 ? (
+                <div className="d-flex justify-content-between">
+                  <span>{order.taxIncluded ? `Includes ${order.taxType || 'GST'} (${order.taxRate || ''}%)` : `${order.taxType || 'GST'} (${order.taxRate || ''}%)`}</span>
+                  <span>{order.taxIncluded ? `(₹${order.tax.toLocaleString("en-IN")})` : `+₹${order.tax.toLocaleString("en-IN")}`}</span>
+                </div>
+              ) : null}
               <div className="d-flex justify-content-between border-top pt-2 mt-2" style={{ fontSize: "15px", fontWeight: "700", color: "#2c3e50" }}>
                 <span>Grand Total</span>
                 <span>₹{order.total.toLocaleString("en-IN")}</span>

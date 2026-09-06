@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReviewCard from "./ReviewCard";
+import { useData } from "../../context/DataContext";
 import "./Reviews.css";
 
 import { BACKEND_URL } from "../../config";
@@ -16,6 +17,7 @@ const getReviewImageUrl = (image) => {
 };
 
 function Reviews() {
+  const { storeSettings } = useData();
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,6 +44,10 @@ function Reviews() {
         setLoading(false);
       });
   }, []);
+
+  if (storeSettings?.allow_reviews === false) {
+    return null;
+  }
 
   if (loading) {
     return (

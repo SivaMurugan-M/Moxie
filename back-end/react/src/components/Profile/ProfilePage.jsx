@@ -11,7 +11,8 @@ import {
   Clock01Icon,
   ViewIcon,
   HideIcon,
-  CancelIcon
+  CancelIcon,
+  DeleteIcon
 } from '../../icons'
 import './ProfilePage.css'
 
@@ -90,6 +91,34 @@ export default function ProfilePage() {
     }
   }, [resendTimer])
 
+  // Auto-dismiss status messages
+  useEffect(() => {
+    if (statusMsg.text) {
+      const timer = setTimeout(() => {
+        setStatusMsg({ type: '', text: '' })
+      }, statusMsg.type === 'success' ? 3500 : 6000)
+      return () => clearTimeout(timer)
+    }
+  }, [statusMsg])
+
+  useEffect(() => {
+    if (passwordStatusMsg.text && passwordStatusMsg.type === 'success') {
+      const timer = setTimeout(() => {
+        setPasswordStatusMsg({ type: '', text: '' })
+      }, 3500)
+      return () => clearTimeout(timer)
+    }
+  }, [passwordStatusMsg])
+
+  useEffect(() => {
+    if (forgotStatusMsg.text && forgotStatusMsg.type === 'success') {
+      const timer = setTimeout(() => {
+        setForgotStatusMsg({ type: '', text: '' })
+      }, 3500)
+      return () => clearTimeout(timer)
+    }
+  }, [forgotStatusMsg])
+
   // Check URL parameters for password tab
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -134,6 +163,10 @@ export default function ProfilePage() {
             })
             if (updated.profile_image) {
               setPreviewImage(updated.profile_image)
+              const headerAvatarEl = document.querySelector('.user-avatar')
+              if (headerAvatarEl) {
+                headerAvatarEl.innerHTML = `<img src="${updated.profile_image}" alt="${updated.fullName || updated.username}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;" />`
+              }
             }
           }
         }
@@ -149,7 +182,7 @@ export default function ProfilePage() {
     if (statusMsg.text) setStatusMsg({ type: '', text: '' })
   }
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -157,8 +190,85 @@ export default function ProfilePage() {
         return
       }
       setSelectedFile(file)
-      setPreviewImage(URL.createObjectURL(file))
+      const localUrl = URL.createObjectURL(file)
+      setPreviewImage(localUrl)
       setStatusMsg({ type: '', text: '' })
+
+      // Auto upload directly for instant profile photo update
+      setIsSaving(true)
+      try {
+        const csrfToken = djangoContext.csrfToken || ''
+        const bodyData = new FormData()
+        bodyData.append('profile_image', file)
+        bodyData.append('first_name', (formData.first_name || '').trim())
+        bodyData.append('last_name', (formData.last_name || '').trim())
+        bodyData.append('email', (formData.email || '').trim())
+        bodyData.append('username', (formData.username || admin.username || '').trim())
+        bodyData.append('mobile', (formData.mobile || '').trim())
+
+        const res = await fetch('/api/admin-settings/profile/', {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrfToken },
+          body: bodyData
+        })
+        const data = await res.json()
+        if (res.ok) {
+          const p = data.profile || data || {}
+          const newImg = p.profile_image || p.profileImage || localUrl
+          setAdmin(prev => ({ ...prev, profile_image: newImg }))
+          setPreviewImage(newImg)
+          setSelectedFile(null)
+          setStatusMsg({ type: 'success', text: data.message || 'Profile photo updated successfully.' })
+
+          // Update header avatar in real-time
+          const headerAvatarEl = document.querySelector('.user-avatar')
+          if (headerAvatarEl && newImg) {
+            headerAvatarEl.innerHTML = `<img src="${newImg}" alt="${admin.fullName || admin.username}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;" />`
+          }
+        } else {
+          setStatusMsg({ type: 'error', text: data.error || 'Failed to upload photo.' })
+        }
+      } catch (err) {
+        console.error(err)
+        setStatusMsg({ type: 'error', text: 'Network error uploading profile photo.' })
+      } finally {
+        setIsSaving(false)
+      }
+    }
+  }
+
+  const handleRemovePhoto = async (e) => {
+    if (e) e.stopPropagation()
+    if (!window.confirm('Are you sure you want to remove your profile photo?')) return
+
+    setIsSaving(true)
+    try {
+      const csrfToken = djangoContext.csrfToken || ''
+      const res = await fetch('/api/admin-settings/profile/', {
+        method: 'DELETE',
+        headers: { 'X-CSRFToken': csrfToken }
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setAdmin(prev => ({ ...prev, profile_image: null }))
+        setPreviewImage(null)
+        setSelectedFile(null)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        setStatusMsg({ type: 'success', text: data.message || 'Profile photo removed successfully.' })
+
+        // Restore fallback avatar in header
+        const headerAvatarEl = document.querySelector('.user-avatar')
+        if (headerAvatarEl) {
+          headerAvatarEl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+        }
+      } else {
+        setStatusMsg({ type: 'error', text: data.error || 'Failed to remove photo.' })
+      }
+    } catch (err) {
+      console.error(err)
+      setStatusMsg({ type: 'error', text: 'Network error removing profile photo.' })
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -256,6 +366,11 @@ export default function ProfilePage() {
 
         const popoverNameEl = document.querySelector('.user-popover-info strong')
         if (popoverNameEl) popoverNameEl.textContent = displayName
+
+        const headerAvatarEl = document.querySelector('.user-avatar')
+        if (headerAvatarEl && updatedAdmin.profile_image) {
+          headerAvatarEl.innerHTML = `<img src="${updatedAdmin.profile_image}" alt="${displayName}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;" />`
+        }
 
         // Show global toast if available
         const toast = document.getElementById('moxie-toast')
@@ -557,18 +672,35 @@ export default function ProfilePage() {
             Manage your account information and personal settings.
           </p>
         </div>
-        <div className="profile-breadcrumb">
-          <a href="/admin/">Dashboard</a>
-          <span>&rsaquo;</span>
-          <span className="current">My Profile</span>
-        </div>
       </div>
 
       {/* Status Notification Alert */}
       {statusMsg.text && (
-        <div className={`profile-status-alert ${statusMsg.type}`}>
-          <span>{statusMsg.type === 'success' ? '✅' : '⚠️'}</span>
-          <span>{statusMsg.text}</span>
+        <div className={`profile-status-alert ${statusMsg.type}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>{statusMsg.type === 'success' ? '✅' : '⚠️'}</span>
+            <span>{statusMsg.text}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setStatusMsg({ type: '', text: '' })}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'inherit',
+              opacity: 0.7,
+              fontSize: '18px',
+              lineHeight: 1,
+              padding: '0 4px',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+            title="Dismiss message"
+            aria-label="Dismiss message"
+          >
+            &times;
+          </button>
         </div>
       )}
 
@@ -592,8 +724,8 @@ export default function ProfilePage() {
               <button
                 type="button"
                 className="avatar-edit-badge-btn"
-                onClick={() => {
-                  setIsEditing(true)
+                onClick={(e) => {
+                  e.stopPropagation()
                   fileInputRef.current?.click()
                 }}
                 title="Change Photo"
@@ -610,6 +742,17 @@ export default function ProfilePage() {
               accept="image/*"
               style={{ display: 'none' }}
             />
+
+            {previewImage && (
+              <button
+                type="button"
+                className="avatar-remove-text-btn"
+                onClick={handleRemovePhoto}
+              >
+                <AppIcon icon={DeleteIcon} size={13} color="#ef4444" />
+                <span>Remove Photo</span>
+              </button>
+            )}
 
             <h2 className="summary-admin-name">{displayName}</h2>
             <div className="summary-role-pill">{admin.role}</div>

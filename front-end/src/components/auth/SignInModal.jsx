@@ -1,6 +1,7 @@
 import React, { useEffect, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { useData } from "../../context/DataContext";
 import { useToast } from "../../context/ToastContext";
 import "./SignInModal.css";
 
@@ -11,6 +12,7 @@ import "./SignInModal.css";
 function SignInModal({ onClose }) {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
+  const { storeSettings } = useData();
   const showToast = useToast();
 
   /* ── Form state ── */
@@ -243,14 +245,16 @@ function SignInModal({ onClose }) {
           </button>
 
           {/* Outlined Create Your Account Button */}
-          <button
-            id="signin-create-account-btn"
-            type="button"
-            className="auth-button auth-button--outline"
-            onClick={handleCreateAccount}
-          >
-            CREATE YOUR ACCOUNT
-          </button>
+          {storeSettings?.allow_registration !== false && (
+            <button
+              id="signin-create-account-btn"
+              type="button"
+              className="auth-button auth-button--outline"
+              onClick={handleCreateAccount}
+            >
+              CREATE YOUR ACCOUNT
+            </button>
+          )}
 
         </form>
       </div>
